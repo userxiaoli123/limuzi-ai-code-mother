@@ -1,27 +1,25 @@
 <script setup lang="ts">
 import BasicLayout from '@/layouts/BasicLayout.vue'
+import { userLoginUserStore } from './stores/loginUser';
 
-import {health} from '@/api/healthController.ts'
-
-health().then((res) => {
-  console.log(res)
-})
+const loginUserStore = userLoginUserStore()
+loginUserStore.fetchLoginUser()
 
 </script>
 
 <template>
-  <BasicLayout/>
+  <BasicLayout />
 </template>
 
 <style>
 /* 全局样式重置 */
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 
-html,
+/* html,
 body {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -29,5 +27,5 @@ body {
 
 #app {
   height: 100%;
-}
+} */
 </style>

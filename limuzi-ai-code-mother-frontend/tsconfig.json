@@ -7,5 +7,9 @@
     {
       "path": "./tsconfig.app.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "noUnusedLocals": false, // 关闭未使用变量报错
+    "noUnusedParameters": false // 关闭未使用函数参数报错
+  }
 }

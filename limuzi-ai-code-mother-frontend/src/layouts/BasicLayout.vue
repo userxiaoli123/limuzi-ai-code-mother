@@ -2,25 +2,25 @@
   <a-layout class="basic-layout">
     <!-- 顶部导航栏 -->
     <a-layout-header class="layout-header">
-      <GlobalHeader/>
+      <GlobalHeader />
     </a-layout-header>
 
     <!-- 主要内容区域 -->
     <a-layout-content class="layout-content">
       <div class="content-wrapper">
-        <RouterView/>
+        <RouterView />
       </div>
     </a-layout-content>
 
     <!-- 底部版权信息 -->
     <a-layout-footer class="layout-footer">
-      <GlobalFooter/>
+      <GlobalFooter />
     </a-layout-footer>
   </a-layout>
 </template>
 
 <script setup lang="ts">
-import {RouterView} from 'vue-router'
+import { RouterView } from 'vue-router'
 import GlobalHeader from '@/components/GlobalHeader.vue'
 import GlobalFooter from '@/components/GlobalFooter.vue'
 </script>
