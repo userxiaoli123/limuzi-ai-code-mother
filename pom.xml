@@ -64,6 +64,31 @@
             <version>4.5.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.mybatis-flex</groupId>
+            <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+
+        <!-- 代码生成模块 -->
+        <dependency>
+            <groupId>com.mybatis-flex</groupId>
+            <artifactId>mybatis-flex-codegen</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+        <!-- 数据库连接池 -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+
+<!--        切面类-->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>
