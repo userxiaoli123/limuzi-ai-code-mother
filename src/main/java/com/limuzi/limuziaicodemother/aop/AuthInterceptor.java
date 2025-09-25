@@ -8,7 +8,6 @@ import com.limuzi.limuziaicodemother.model.enums.UserRoleEnum;
 import com.limuzi.limuziaicodemother.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.apachecommons.CommonsLog;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -43,11 +42,11 @@ public class AuthInterceptor {
         }
         UserRoleEnum userRoleEnum = UserRoleEnum.getEnumByValue(user.getUserRole());
         if (userRoleEnum== null){
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR);
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
 //        要求必须有管理员权限，但是没有
         if (UserRoleEnum.ADMIN.equals(mustRoleEnum) && !UserRoleEnum.ADMIN.equals(userRoleEnum)){
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR);
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
 //      通过校验
         return joinPoint.proceed();

@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
-import com.limuzi.limuziaicodemother.model.dto.UserQueryRequest;
+import com.limuzi.limuziaicodemother.model.dto.user.UserQueryRequest;
 import com.limuzi.limuziaicodemother.model.enums.UserRoleEnum;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
@@ -33,26 +33,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
 //        校验参数是否为空
         if (userAccount == null || userPassword == null || checkPassword == null) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "参数为空");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
 //        验证密码长度是否合适
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "密码长度不小于8");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度不小于8");
         }
 //        校验账号长度
         if (userAccount.length() < 4) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "账号长度不小于4");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号长度不小于4");
         }
 //        验证两次输入的密码是否一致
         if (!userPassword.equals(checkPassword)) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "两次输入的密码不一致");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
 
 //       查找是否注册过
         QueryWrapper queryWrapper = new QueryWrapper().eq(User::getUserAccount, userAccount);
         long count = this.mapper.selectCountByQuery(queryWrapper);
         if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "账号已注册");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号已注册");
         }
 
         String encryptPassword = getEncryptPassword(userPassword);
@@ -103,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public QueryWrapper getQueryWrapper(UserQueryRequest userQueryRequest) {
         if (userQueryRequest == null) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "请求参数为空");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
         Long id = userQueryRequest.getId();
         String userAccount = userQueryRequest.getUserAccount();
@@ -125,20 +125,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         if (userAccount == null || userPassword == null) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "参数为空");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "账号错误");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号错误");
         }
         if (userPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "密码错误");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
         String encryptPassword = getEncryptPassword(userPassword);
         QueryWrapper queryWrapper = new QueryWrapper().eq(User::getUserAccount, userAccount)
                 .eq(User::getUserPassword, encryptPassword);
         User user = this.mapper.selectOneByQuery(queryWrapper);
         if (user == null) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "用户不存在或密码错误");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
         }
         LoginUserVO loginUserVO = getLoginUserVO(user);
         request.getSession().setAttribute(USER_LOGIN_STATE, user);

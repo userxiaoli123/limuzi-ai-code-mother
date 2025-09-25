@@ -79,13 +79,13 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message, type MenuProps } from 'ant-design-vue'
-import { userLoginUserStore } from '@/stores/loginUser'
+import { useLoginUserStore } from '@/stores/loginUser'
 import { LoginOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import { userLogout, updateUser } from '@/api/userController'
 import type { FormInstance } from 'ant-design-vue'
 
 // 用户登录信息
-const loginUserStore = userLoginUserStore()
+const loginUserStore = useLoginUserStore()
 
 const router = useRouter()
 const route = useRoute()
@@ -98,9 +98,14 @@ const originItems = [
     title: '首页'
   },
   {
-    key: '/admin/userManagement',
+    key: '/admin/userManage',
     label: '用户管理',
     title: '用户管理'
+  },
+  {
+    key: '/admin/appManage',
+    label: '应用管理',
+    title: '应用管理'
   },
   {
     key: '/about',
@@ -210,6 +215,7 @@ const handleEditOk = async () => {
   height: 64px;
   padding: 0 24px;
   background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-left {
@@ -247,11 +253,26 @@ const handleEditOk = async () => {
   line-height: 64px;
   border-bottom: none !important;
   position: relative;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: color 0.25s ease;
+  overflow: hidden;
 }
 
 .header-menu :deep(.ant-menu-item::after) {
   display: none !important;
+}
+
+/* 动画下划线（默认收起） */
+.header-menu :deep(.ant-menu-item::before) {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  height: 2px;
+  background-color: #1677ff;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
 }
 
 .header-menu :deep(.ant-menu-item:hover) {
@@ -259,9 +280,14 @@ const handleEditOk = async () => {
 }
 
 .header-menu :deep(.ant-menu-item-selected) {
-  border-bottom: 2px solid #1677ff !important;
   color: #1677ff !important;
   background: transparent !important;
+}
+
+/* 悬停或选中时展开下划线 */
+.header-menu :deep(.ant-menu-item:hover::before),
+.header-menu :deep(.ant-menu-item-selected::before) {
+  transform: scaleX(1);
 }
 
 .header-menu :deep(.ant-menu-item-selected::after) {

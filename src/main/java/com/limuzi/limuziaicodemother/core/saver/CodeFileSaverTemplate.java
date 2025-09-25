@@ -1,13 +1,11 @@
 package com.limuzi.limuziaicodemother.core.saver;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.limuzi.limuziaicodemother.constant.AppConstant;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
-import org.apache.commons.lang3.Validate;
-import org.aspectj.weaver.IUnwovenClassFile;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -20,18 +18,18 @@ import java.nio.charset.StandardCharsets;
 public abstract class CodeFileSaverTemplate<T> {
 
     // 文件保存根目录
-    private static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
+    private static final String FILE_SAVE_ROOT_DIR = AppConstant.CODE_OUTPUT_ROOT_DIR;
 
     /**
      * 保存代码
      * @param result 生成结果
      * @return  保存的目录
      */
-    public final File saveCode(T result){
+    public final File saveCode(T result, Long appId){
         // 1. 验证输入
         validateInput(result);
         // 2. 构建唯一目录
-        String baseDirPath = buildUniqueDir();
+        String baseDirPath = buildUniqueDir(appId);
         // 3. 保存文件
         saveFiles(result, baseDirPath);
         // 4. 返回目录
@@ -43,7 +41,7 @@ public abstract class CodeFileSaverTemplate<T> {
      */
     protected void validateInput(T result) {
         if (result == null){
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "code is null");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "code is null");
         }
     }
 
@@ -51,9 +49,12 @@ public abstract class CodeFileSaverTemplate<T> {
     /**
      * 构建唯一目录路径：tmp/code_output/bizType_雪花ID
      */
-    private String buildUniqueDir() {
+    private String buildUniqueDir(Long appId) {
+        if (appId == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "appId is null");
+        }
         String codeGenType = getCodeType().getValue();
-        String uniqueDirName = StrUtil.format("{}_{}", codeGenType, IdUtil.getSnowflakeNextIdStr());
+        String uniqueDirName = StrUtil.format("{}_{}", codeGenType, appId);
         String dirPath = FILE_SAVE_ROOT_DIR + File.separator + uniqueDirName;
         FileUtil.mkdir(dirPath);
         return dirPath;

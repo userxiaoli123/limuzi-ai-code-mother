@@ -1,6 +1,6 @@
 package com.limuzi.limuziaicodemother.service;
 
-import com.limuzi.limuziaicodemother.model.dto.UserQueryRequest;
+import com.limuzi.limuziaicodemother.model.dto.user.UserQueryRequest;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
 import com.mybatisflex.core.query.QueryWrapper;

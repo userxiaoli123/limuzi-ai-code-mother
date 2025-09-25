@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodemother.model.dto;
+package com.limuzi.limuziaicodemother.model.dto.user;
 
 import com.limuzi.limuziaicodemother.common.PageRequest;
 import lombok.Data;
