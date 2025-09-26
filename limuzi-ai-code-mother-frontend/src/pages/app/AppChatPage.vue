@@ -42,11 +42,14 @@
       <div class="chat-section">
         <!-- 消息区域 -->
         <div class="messages-container" ref="messagesContainer">
-          <!-- 加载更多按钮 -->
-          <div v-if="hasMoreHistory" class="load-more-container">
-            <a-button type="link" @click="loadMoreHistory" :loading="loadingHistory" size="small">
-              加载更多历史消息
-            </a-button>
+          <!-- 顶部加载中提示 -->
+          <div v-if="loadingHistory" class="load-more-container">
+            <a-spin size="small" />
+            <span style="margin-left: 8px">加载中...</span>
+          </div>
+          <!-- 顶部无更多提示 -->
+          <div v-if="showNoMoreTip && !hasMoreHistory && historyLoaded" class="no-more-container">
+            暂无历史消息
           </div>
           <div v-for="(message, index) in messages" :key="index" class="message-item">
             <div v-if="message.type === 'user'" class="user-message">
@@ -265,6 +268,9 @@ const loadingHistory = ref(false)
 const hasMoreHistory = ref(false)
 const lastCreateTime = ref<string>()
 const historyLoaded = ref(false)
+const showNoMoreTip = ref(false)
+// 顶部加载历史时抑制自动滚动到底部
+const suppressAutoScroll = ref(false)
 
 // 预览相关
 const previewUrl = ref('')
@@ -344,6 +350,11 @@ const loadChatHistory = async (isLoadMore = false) => {
         hasMoreHistory.value = false
       }
       historyLoaded.value = true
+      // 首次加载后滚到底部（瞬间定位，无动画）
+      if (!isLoadMore) {
+        await nextTick()
+        scrollToBottomInstant()
+      }
     }
   } catch (error) {
     console.error('加载对话历史失败：', error)
@@ -355,7 +366,29 @@ const loadChatHistory = async (isLoadMore = false) => {
 
 // 加载更多历史消息
 const loadMoreHistory = async () => {
-  await loadChatHistory(true)
+  const container = messagesContainer.value
+  const prevScrollHeight = container?.scrollHeight || 0
+  const prevScrollTop = container?.scrollTop || 0
+  // 加载历史时不要触发自动滚动到底部
+  suppressAutoScroll.value = true
+  try {
+    await loadChatHistory(true)
+    await nextTick()
+    // 维持可视位置不跳动
+    if (container) {
+      const newScrollHeight = container.scrollHeight
+      const previousBehavior = container.style.scrollBehavior
+      // 关闭平滑滚动，立即定位，避免视觉上的下滑动画
+      container.style.scrollBehavior = 'auto'
+      const delta = newScrollHeight - prevScrollHeight
+      container.scrollTop = prevScrollTop + delta
+      // 恢复原有平滑滚动设置
+      container.style.scrollBehavior = previousBehavior || ''
+    }
+  } finally {
+    // 等渲染稳定后再允许自动滚动
+    setTimeout(() => (suppressAutoScroll.value = false), 200)
+  }
 }
 
 // 获取应用信息
@@ -603,9 +636,21 @@ const updatePreview = () => {
 
 // 滚动到底部
 const scrollToBottom = () => {
+  if (suppressAutoScroll.value) return
   if (messagesContainer.value) {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
+}
+
+// 瞬间滚到底部（临时关闭平滑滚动）
+const scrollToBottomInstant = () => {
+  if (suppressAutoScroll.value) return
+  const el = messagesContainer.value
+  if (!el) return
+  const previous = el.style.scrollBehavior
+  el.style.scrollBehavior = 'auto'
+  el.scrollTop = el.scrollHeight
+  el.style.scrollBehavior = previous || ''
 }
 
 // 下载代码
@@ -753,6 +798,20 @@ const getInputPlaceholder = () => {
   return '请描述你想生成的网站，越详细效果越好哦'
 }
 
+// 消息容器滚动：到顶时加载上一页；无更多显示提示
+const onMessagesScroll = async () => {
+  const el = messagesContainer.value
+  if (!el) return
+  if (el.scrollTop <= 0 && !loadingHistory.value) {
+    if (hasMoreHistory.value) {
+      await loadMoreHistory()
+    } else if (historyLoaded.value) {
+      showNoMoreTip.value = true
+      setTimeout(() => (showNoMoreTip.value = false), 1200)
+    }
+  }
+}
+
 // 页面加载时获取应用信息
 onMounted(() => {
   fetchAppInfo()
@@ -761,11 +820,22 @@ onMounted(() => {
   window.addEventListener('message', (event) => {
     visualEditor.handleIframeMessage(event)
   })
+
+  // 绑定消息容器滚动事件，并在进入页面滚动到底部
+  nextTick(() => {
+    const el = messagesContainer.value
+    if (!el) return
+    el.addEventListener('scroll', onMessagesScroll)
+    // 首次进入瞬间定位到底部，避免可见滑动
+    scrollToBottomInstant()
+  })
 })
 
 // 清理资源
 onUnmounted(() => {
   // EventSource 会在组件卸载时自动清理
+  const el = messagesContainer.value
+  el?.removeEventListener('scroll', onMessagesScroll)
 })
 </script>
 
