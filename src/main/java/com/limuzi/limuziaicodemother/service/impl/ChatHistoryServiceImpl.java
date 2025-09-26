@@ -1,5 +1,6 @@
 package com.limuzi.limuziaicodemother.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.limuzi.limuziaicodemother.constant.UserConstant;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
@@ -15,17 +16,23 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.limuzi.limuziaicodemother.model.entity.ChatHistory;
 import com.limuzi.limuziaicodemother.mapper.ChatHistoryMapper;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 对话历史 服务层实现。
  *
  * @author limuzi
  */
+@Slf4j
 @Service
 public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatHistory>  implements ChatHistoryService{
 
@@ -91,10 +98,50 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     }
 
     /**
+     * 加载应用对话历史到内存
+     * @param appId 应用ID
+     * @param chatMemory 对话历史缓存
+     * @param maxCount 最大加载数量
+     * @return int
+     */
+    @Override
+    public int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount) {
+        try {
+            QueryWrapper wrapper = QueryWrapper.create()
+                    .eq(ChatHistory::getAppId, appId)
+                    .orderBy(ChatHistory::getCreateTime, false)
+                    .limit(1, maxCount);
+            List<ChatHistory> chatHistories = this.list(wrapper);
+            if (CollUtil.isEmpty(chatHistories)){
+                return 0;
+            }
+//        反转列表
+            chatHistories = chatHistories.reversed();
+            int loadCount = 0;
+//        先清除历史缓存，防止重新加载
+            chatMemory.clear();
+            for (ChatHistory chatHistory : chatHistories) {
+                if (ChatHistoryMessageTypeEnum.USER.getValue().equals(chatHistory.getMessageType())){
+                    chatMemory.add(UserMessage.from(chatHistory.getMessage()));
+                    loadCount++;
+                }else if (ChatHistoryMessageTypeEnum.AI.getValue().equals(chatHistory.getMessageType())){
+                    chatMemory.add(AiMessage.from(chatHistory.getMessage()));
+                    loadCount++;
+                }
+            }
+            log.info("加载应用appId为{}的对话历史，共{}条", appId, loadCount);
+            return loadCount;
+        } catch (Exception e) {
+            log.error("加载应用对话appId为{}的历史失败:{}", appId, e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * 获取查询包装类
      *
-     * @param chatHistoryQueryRequest
-     * @return
+     * @param chatHistoryQueryRequest 查询条件
+     * @return QueryWrapper<ChatHistory>
      */
     @Override
     public QueryWrapper getQueryWrapper(ChatHistoryQueryRequest chatHistoryQueryRequest) {

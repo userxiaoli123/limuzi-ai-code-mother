@@ -1,6 +1,7 @@
 package com.limuzi.limuziaicodemother.core;
 
 import com.limuzi.limuziaicodemother.ai.AiCodeGeneratorService;
+import com.limuzi.limuziaicodemother.ai.AiCodeGeneratorServiceFactory;
 import com.limuzi.limuziaicodemother.ai.model.HtmlCodeResult;
 import com.limuzi.limuziaicodemother.ai.model.MultiFileCodeResult;
 import com.limuzi.limuziaicodemother.core.parser.CodeParserExecutor;
@@ -8,6 +9,7 @@ import com.limuzi.limuziaicodemother.core.saver.CodeFileSaverExecutor;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
+import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,8 +25,7 @@ import java.io.File;
 public class AiCodeGeneratorFacade {
 
     @Resource
-    private AiCodeGeneratorService aiCodeGeneratorService;
-
+    private AiCodeGeneratorServiceFactory aiCodeGeneratorServiceFactory;
     /**
      * 统一入口：根据类型生成并保存代码
      *
@@ -36,6 +37,7 @@ public class AiCodeGeneratorFacade {
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "生成类型为空");
         }
+        AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         return switch (codeGenTypeEnum) {
             case HTML -> {
                 HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode(userMessage);
@@ -62,6 +64,7 @@ public class AiCodeGeneratorFacade {
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "生成类型为空");
         }
+        AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         return switch (codeGenTypeEnum) {
             case HTML -> {
                 Flux<String> codeStream = aiCodeGeneratorService.generateHtmlCodeStream(userMessage);
@@ -104,27 +107,5 @@ public class AiCodeGeneratorFacade {
                 log.error("保存失败: {}", e.getMessage());
             }
         });
-    }
-
-    /**
-     * 生成 HTML 模式的代码并保存
-     *
-     * @param userMessage 用户提示词
-     * @return 保存的目录
-     */
-    private File generateAndSaveHtmlCode(String userMessage) {
-        HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode(userMessage);
-        return CodeFileSaver.saveHtmlCodeResult(result);
-    }
-
-    /**
-     * 生成多文件模式的代码并保存
-     *
-     * @param userMessage 用户提示词
-     * @return 保存的目录
-     */
-    private File generateAndSaveMultiFileCode(String userMessage) {
-        MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode(userMessage);
-        return CodeFileSaver.saveMultiFileCodeResult(result);
     }
 }
