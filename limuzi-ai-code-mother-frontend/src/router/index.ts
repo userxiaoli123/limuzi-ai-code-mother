@@ -45,6 +45,7 @@ const router = createRouter({
       path: '/app/chat/:id',
       name: '应用对话',
       component: AppChatPage,
+      meta: { hideChrome: true },
     },
     {
       path: '/app/edit/:id',
