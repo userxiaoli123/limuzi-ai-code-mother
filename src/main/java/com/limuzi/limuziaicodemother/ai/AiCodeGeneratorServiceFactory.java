@@ -3,7 +3,6 @@ package com.limuzi.limuziaicodemother.ai;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.limuzi.limuziaicodemother.ai.tools.FileWriteTool;
-import com.limuzi.limuziaicodemother.config.ReasoningStreamingChatModelConfig;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
@@ -88,10 +87,10 @@ public class AiCodeGeneratorServiceFactory {
                 .builder()
                 .id(appId)
                 .chatMemoryStore(redisChatMemoryStore)
-                .maxMessages(20)
+                .maxMessages(50)
                 .build();
 //        从数据库中加载对话记忆到内存
-        chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 20);
+        chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 50);
         return switch (codeGenType){
             // Vue 项目
             case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)

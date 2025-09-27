@@ -7,6 +7,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.limuzi.limuziaicodemother.constant.AppConstant;
 import com.limuzi.limuziaicodemother.core.AiCodeGeneratorFacade;
+import com.limuzi.limuziaicodemother.core.handler.StreamHandlerExecutor;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
@@ -48,11 +49,13 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private final UserService userService;
     private final AiCodeGeneratorFacade aiCodeGeneratorFacade;
     private final ChatHistoryService chatHistoryService;
+    private final StreamHandlerExecutor streamHandlerExecutor;
 
-    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService) {
+    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor) {
         this.userService = userService;
         this.aiCodeGeneratorFacade = aiCodeGeneratorFacade;
         this.chatHistoryService = chatHistoryService;
+        this.streamHandlerExecutor = streamHandlerExecutor;
     }
 
     /**
@@ -84,19 +87,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 //        调用ai前先保存会话记录
         chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
         // 5. 调用 AI 生成代码
-        Flux<String> flux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
-        StringBuilder codeBuilder = new StringBuilder();
-        return flux.map(content -> {
-            codeBuilder.append(content);
-            return content;
-        }).doOnComplete(() -> {
-            // 6.添加生成的代码到对话历史
-            chatHistoryService.addChatMessage(appId, codeBuilder.toString(), ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-        }).doOnError(error -> {
-            // 7.添加错误信息到对话历史
-            String errorMessage = "AI回复失败：" + error.getMessage();
-            chatHistoryService.addChatMessage(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-        });
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, appId, loginUser, codeGenTypeEnum);
     }
 
     @Override
