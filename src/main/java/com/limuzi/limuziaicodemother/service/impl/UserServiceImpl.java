@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
+import com.limuzi.limuziaicodemother.manager.CosManager;
 import com.limuzi.limuziaicodemother.model.dto.user.UserQueryRequest;
 import com.limuzi.limuziaicodemother.model.enums.UserRoleEnum;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
@@ -13,11 +14,21 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.limuzi.limuziaicodemother.model.entity.User;
 import com.limuzi.limuziaicodemother.mapper.UserMapper;
 import com.limuzi.limuziaicodemother.service.UserService;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 import static com.limuzi.limuziaicodemother.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -26,8 +37,11 @@ import static com.limuzi.limuziaicodemother.constant.UserConstant.USER_LOGIN_STA
  *
  * @author limuzi
  */
+@Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    @Resource
+    private CosManager cosManager;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -166,4 +180,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
     }
+
+    @Override
+    public String updateAvatar(MultipartFile file, HttpServletRequest request) {
+        String key = cosManager.generateKey(file.getOriginalFilename() + UUID.randomUUID());
+        User user = getLoginUser(request);
+        Long userId = user.getId();
+        User currentUser = getById(userId);
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+        }
+//      存储之前的头像路径
+        String oldAvatar = currentUser.getUserAvatar();
+//        修改头像
+        try {
+            String newAvatar;
+            try (InputStream in = file.getInputStream()) {
+                newAvatar = cosManager.uploadFile(key, in, file.getSize(), file.getContentType());
+            }
+            if (newAvatar != null){
+                currentUser.setUserAvatar(newAvatar);
+                boolean b = updateById(currentUser);
+                if(!b){
+//                    删除上传的头像
+                    cosManager.deleteFile(newAvatar);
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新用户头像失败");
+                }
+                if (oldAvatar != null) {
+                    cosManager.deleteFile(oldAvatar);
+                }
+            }
+            return newAvatar;
+        } catch (IOException e) {
+            log.info(e.getMessage());
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传头像失败");
+        }
+    }
+
 }

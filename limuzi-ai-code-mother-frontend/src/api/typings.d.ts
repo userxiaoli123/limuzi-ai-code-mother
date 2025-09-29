@@ -142,10 +142,6 @@ declare namespace API {
     id?: number
   }
 
-  type downloadAppCodeParams = {
-    appId: number
-  }
-
   type getAppVOByIdByAdminParams = {
     id: number
   }
@@ -273,5 +269,6 @@ declare namespace API {
     userProfile?: string
     userRole?: string
     createTime?: string
+    updateTime?: string
   }
 }

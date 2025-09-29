@@ -9,17 +9,9 @@
         <a-input v-model:value="searchParams.userId" placeholder="输入用户ID" />
       </a-form-item>
       <a-form-item label="生成类型">
-        <a-select
-          v-model:value="searchParams.codeGenType"
-          placeholder="选择生成类型"
-          style="width: 150px"
-        >
+        <a-select v-model:value="searchParams.codeGenType" placeholder="选择生成类型" style="width: 150px">
           <a-select-option value="">全部</a-select-option>
-          <a-select-option
-            v-for="option in CODE_GEN_TYPE_OPTIONS"
-            :key="option.value"
-            :value="option.value"
-          >
+          <a-select-option v-for="option in CODE_GEN_TYPE_OPTIONS" :key="option.value" :value="option.value">
             {{ option.label }}
           </a-select-option>
         </a-select>
@@ -29,62 +21,54 @@
       </a-form-item>
     </a-form>
     <a-divider />
-
-    <!-- 表格 -->
-    <a-table
-      :columns="columns"
-      :data-source="data"
-      :pagination="pagination"
-      @change="doTableChange"
-      :scroll="{ x: 1200 }"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'cover'">
-          <a-image v-if="record.cover" :src="record.cover" :width="80" :height="60" />
-          <div v-else class="no-cover">无封面</div>
+    <a-spin tip="Loading..." :spinning = "isSpinning">
+      <!-- 表格 -->
+      <a-table :columns="columns" :data-source="data" :pagination="pagination" @change="doTableChange"
+        :scroll="{ x: 1200 }">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'cover'">
+            <a-image v-if="record.cover" :src="record.cover" :width="80" :height="60" />
+            <div v-else class="no-cover">无封面</div>
+          </template>
+          <template v-else-if="column.dataIndex === 'initPrompt'">
+            <a-tooltip :title="record.initPrompt">
+              <div class="prompt-text">{{ record.initPrompt }}</div>
+            </a-tooltip>
+          </template>
+          <template v-else-if="column.dataIndex === 'codeGenType'">
+            {{ formatCodeGenType(record.codeGenType) }}
+          </template>
+          <template v-else-if="column.dataIndex === 'priority'">
+            <a-tag v-if="record.priority === 99" color="gold">精选</a-tag>
+            <span v-else>{{ record.priority || 0 }}</span>
+          </template>
+          <template v-else-if="column.dataIndex === 'deployedTime'">
+            <span v-if="record.deployedTime">
+              {{ formatTime(record.deployedTime) }}
+            </span>
+            <span v-else class="text-gray">未部署</span>
+          </template>
+          <template v-else-if="column.dataIndex === 'createTime'">
+            {{ formatTime(record.createTime) }}
+          </template>
+          <template v-else-if="column.dataIndex === 'user'">
+            <UserInfo :user="record.user" size="small" />
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <a-space>
+              <a-button type="primary" size="small" @click="editApp(record)"> 编辑 </a-button>
+              <a-button type="default" size="small" @click="toggleFeatured(record)"
+                :class="{ 'featured-btn': record.priority === 99 }">
+                {{ record.priority === 99 ? '取消精选' : '精选' }}
+              </a-button>
+              <a-popconfirm title="确定要删除这个应用吗？" @confirm="deleteApp(record.id)">
+                <a-button danger size="small">删除</a-button>
+              </a-popconfirm>
+            </a-space>
+          </template>
         </template>
-        <template v-else-if="column.dataIndex === 'initPrompt'">
-          <a-tooltip :title="record.initPrompt">
-            <div class="prompt-text">{{ record.initPrompt }}</div>
-          </a-tooltip>
-        </template>
-        <template v-else-if="column.dataIndex === 'codeGenType'">
-          {{ formatCodeGenType(record.codeGenType) }}
-        </template>
-        <template v-else-if="column.dataIndex === 'priority'">
-          <a-tag v-if="record.priority === 99" color="gold">精选</a-tag>
-          <span v-else>{{ record.priority || 0 }}</span>
-        </template>
-        <template v-else-if="column.dataIndex === 'deployedTime'">
-          <span v-if="record.deployedTime">
-            {{ formatTime(record.deployedTime) }}
-          </span>
-          <span v-else class="text-gray">未部署</span>
-        </template>
-        <template v-else-if="column.dataIndex === 'createTime'">
-          {{ formatTime(record.createTime) }}
-        </template>
-        <template v-else-if="column.dataIndex === 'user'">
-          <UserInfo :user="record.user" size="small" />
-        </template>
-        <template v-else-if="column.key === 'action'">
-          <a-space>
-            <a-button type="primary" size="small" @click="editApp(record)"> 编辑 </a-button>
-            <a-button
-              type="default"
-              size="small"
-              @click="toggleFeatured(record)"
-              :class="{ 'featured-btn': record.priority === 99 }"
-            >
-              {{ record.priority === 99 ? '取消精选' : '精选' }}
-            </a-button>
-            <a-popconfirm title="确定要删除这个应用吗？" @confirm="deleteApp(record.id)">
-              <a-button danger size="small">删除</a-button>
-            </a-popconfirm>
-          </a-space>
-        </template>
-      </template>
-    </a-table>
+      </a-table>
+    </a-spin>
   </div>
 </template>
 
@@ -164,6 +148,8 @@ const searchParams = reactive<API.AppQueryRequest>({
   pageSize: 10,
 })
 
+const isSpinning = ref<Boolean>(true);
+
 // 获取数据
 const fetchData = async () => {
   try {
@@ -173,6 +159,7 @@ const fetchData = async () => {
     if (res.data.data) {
       data.value = res.data.data.records ?? []
       total.value = res.data.data.totalRow ?? 0
+      isSpinning.value = false
     } else {
       message.error('获取数据失败，' + res.data.message)
     }

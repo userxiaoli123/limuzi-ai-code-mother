@@ -125,3 +125,15 @@ export async function updateUser(body: API.UserUpdateRequest, options?: { [key: 
     ...(options || {}),
   })
 }
+
+/** 此处后端没有提供注释 POST /user/update/avatar */
+export async function updateAvatar(body: {}, options?: { [key: string]: any }) {
+  return request<API.BaseResponseString>('/user/update/avatar', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}

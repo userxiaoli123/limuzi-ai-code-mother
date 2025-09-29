@@ -7,6 +7,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import com.limuzi.limuziaicodemother.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -95,4 +96,10 @@ public interface UserService extends IService<User> {
     boolean userLogout(HttpServletRequest request);
 
 
+    /**
+     * 更新用户头像
+     * @param file  文件
+     * @return 头像地址
+     */
+    String updateAvatar(MultipartFile file, HttpServletRequest request);
 }

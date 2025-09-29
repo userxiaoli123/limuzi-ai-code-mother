@@ -14,32 +14,29 @@
     </a-form>
     <a-divider />
     <!-- 表格 -->
-    <a-table
-      :columns="columns"
-      :data-source="data"
-      :pagination="pagination"
-      @change="doTableChange"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'userAvatar'">
-          <a-image :src="record.userAvatar" :width="120" />
+    <a-spin tip="Loading..." :spinning = "isSpinning">
+      <a-table :columns="columns" :data-source="data" :pagination="pagination" @change="doTableChange">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'userAvatar'">
+            <a-image :src="record.userAvatar" :width="120" />
+          </template>
+          <template v-else-if="column.dataIndex === 'userRole'">
+            <div v-if="record.userRole === 'admin'">
+              <a-tag color="green">管理员</a-tag>
+            </div>
+            <div v-else>
+              <a-tag color="blue">普通用户</a-tag>
+            </div>
+          </template>
+          <template v-else-if="column.dataIndex === 'createTime'">
+            {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <a-button danger @click="doDelete(record.id)">删除</a-button>
+          </template>
         </template>
-        <template v-else-if="column.dataIndex === 'userRole'">
-          <div v-if="record.userRole === 'admin'">
-            <a-tag color="green">管理员</a-tag>
-          </div>
-          <div v-else>
-            <a-tag color="blue">普通用户</a-tag>
-          </div>
-        </template>
-        <template v-else-if="column.dataIndex === 'createTime'">
-          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
-        </template>
-        <template v-else-if="column.key === 'action'">
-          <a-button danger @click="doDelete(record.id)">删除</a-button>
-        </template>
-      </template>
-    </a-table>
+      </a-table>
+    </a-spin>
   </div>
 </template>
 <script lang="ts" setup>
@@ -93,14 +90,18 @@ const searchParams = reactive<API.UserQueryRequest>({
   pageSize: 10,
 })
 
+const isSpinning = ref<Boolean>(true);
+
 // 获取数据
 const fetchData = async () => {
+
   const res = await listUserVoByPage({
     ...searchParams,
   })
   if (res.data.data) {
     data.value = res.data.data.records ?? []
     total.value = res.data.data.totalRow ?? 0
+    isSpinning.value = false
   } else {
     message.error('获取数据失败，' + res.data.message)
   }
@@ -132,7 +133,7 @@ const doSearch = () => {
 }
 
 // 删除数据
-const doDelete = async (id: string) => {
+const doDelete = async (id: number) => {
   if (!id) {
     return
   }

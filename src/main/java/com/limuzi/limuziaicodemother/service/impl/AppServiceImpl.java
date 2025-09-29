@@ -52,13 +52,15 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private final ChatHistoryService chatHistoryService;
     private final StreamHandlerExecutor streamHandlerExecutor;
     private final VueProjectBuilder vueProjectBuilder;
+    private final ScreenshotServiceImpl screenshotService;
 
-    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder) {
+    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService) {
         this.userService = userService;
         this.aiCodeGeneratorFacade = aiCodeGeneratorFacade;
         this.chatHistoryService = chatHistoryService;
         this.streamHandlerExecutor = streamHandlerExecutor;
         this.vueProjectBuilder = vueProjectBuilder;
+        this.screenshotService = screenshotService;
     }
 
     /**
@@ -221,7 +223,35 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         boolean updateResult = this.updateById(updateApp);
         ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR, "更新应用部署信息失败");
         // 10. 返回可访问的 URL
-        return String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
+        String appDeployUrl = String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
+        generateAppScreenshotAsync(appId, appDeployUrl);
+        return appDeployUrl;
+    }
+
+    /**
+     * 生成应用截图
+     * @param appId 应用 ID
+     * @param appDeployUrl 应用部署 URL
+     */
+    @Override
+    public void generateAppScreenshotAsync(Long appId, String appDeployUrl) {
+       Thread.ofVirtual()
+               .start(()->{
+                   String screenshotUrl = screenshotService.generateAndUploadScreenshot(appDeployUrl);
+//                   更新数据库封面
+                   App app = getById(appId);
+                   String coverUrl = app.getCover();
+                   app.setId(appId);
+                   app.setCover(screenshotUrl);
+                   boolean updateResult = this.updateById(app);
+                   if (!updateResult) {
+                       log.error("更新应用封面失败");
+                       throw new BusinessException(ErrorCode.OPERATION_ERROR, "更新应用封面失败");
+                   }
+                   if (StrUtil.isNotBlank(coverUrl)) {
+                       screenshotService.deleteFileFromCos(coverUrl);
+                   }
+               });
     }
 
     /**

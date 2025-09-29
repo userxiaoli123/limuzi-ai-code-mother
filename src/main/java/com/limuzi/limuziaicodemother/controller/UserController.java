@@ -15,13 +15,11 @@ import com.limuzi.limuziaicodemother.model.vo.UserVO;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import com.limuzi.limuziaicodemother.model.entity.User;
 import com.limuzi.limuziaicodemother.service.UserService;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -44,7 +42,7 @@ public class UserController {
      * @return 注册结果
      */
     @PostMapping("register")
-    public BaseResponse<Long> register(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
@@ -60,7 +58,7 @@ public class UserController {
      * @return 登录结果
      */
     @PostMapping("login")
-    public BaseResponse<LoginUserVO> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
@@ -181,5 +179,16 @@ public class UserController {
         return ResultUtils.success(userVOPage);
     }
 
+    /**
+     * 更新用户头像
+     * @param file  文件
+     * @param request 请求体
+     * @return 头像地址
+     */
+    @PostMapping(value = "/update/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<String> updateAvatar(@RequestPart("file") MultipartFile file, HttpServletRequest request) {
+        String avatarUrl = userService.updateAvatar(file, request);
+        return ResultUtils.success(avatarUrl);
+    }
 
 }
