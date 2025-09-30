@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.limuzi.limuziaicodemother.ai.AiCodeGenTypeRoutingService;
 import com.limuzi.limuziaicodemother.constant.AppConstant;
 import com.limuzi.limuziaicodemother.core.AiCodeGeneratorFacade;
 import com.limuzi.limuziaicodemother.core.builder.VueProjectBuilder;
@@ -13,6 +14,7 @@ import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
 import com.limuzi.limuziaicodemother.mapper.AppMapper;
+import com.limuzi.limuziaicodemother.model.dto.app.AppAddRequest;
 import com.limuzi.limuziaicodemother.model.dto.app.AppQueryRequest;
 import com.limuzi.limuziaicodemother.model.entity.App;
 import com.limuzi.limuziaicodemother.model.entity.User;
@@ -53,14 +55,16 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private final StreamHandlerExecutor streamHandlerExecutor;
     private final VueProjectBuilder vueProjectBuilder;
     private final ScreenshotServiceImpl screenshotService;
+    private final AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
 
-    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService) {
+    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService, AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService) {
         this.userService = userService;
         this.aiCodeGeneratorFacade = aiCodeGeneratorFacade;
         this.chatHistoryService = chatHistoryService;
         this.streamHandlerExecutor = streamHandlerExecutor;
         this.vueProjectBuilder = vueProjectBuilder;
         this.screenshotService = screenshotService;
+        this.aiCodeGenTypeRoutingService = aiCodeGenTypeRoutingService;
     }
 
     /**
@@ -94,6 +98,34 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         // 5. 调用 AI 生成代码
         Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
         return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, appId, loginUser, codeGenTypeEnum);
+    }
+
+
+    /**
+     * 创建应用
+     * @param appAddRequest 创建应用请求
+     * @param loginUser 登录用户
+     * @return 应用 ID
+     */
+    @Override
+    public Long createApp(AppAddRequest appAddRequest, User loginUser){
+        // 参数校验
+        String initPrompt = appAddRequest.getInitPrompt();
+        ThrowUtils.throwIf(StrUtil.isBlank(initPrompt), ErrorCode.PARAMS_ERROR, "初始化 prompt 不能为空");
+        // 构造入库对象
+        App app = new App();
+        BeanUtil.copyProperties(appAddRequest, app);
+        app.setUserId(loginUser.getId());
+        // 应用名称暂时为 initPrompt 前 12 位
+        app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
+        //        调用服务生成类型
+        CodeGenTypeEnum codeGenTypeEnum = aiCodeGenTypeRoutingService.routeCodeGenType(initPrompt);
+        // 暂时设置为多文件生成
+        app.setCodeGenType(codeGenTypeEnum.getValue());
+        // 插入数据库
+        boolean result = this.save(app);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return app.getId();
     }
 
     @Override

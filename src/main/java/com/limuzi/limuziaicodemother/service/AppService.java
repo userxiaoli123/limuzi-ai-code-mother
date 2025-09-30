@@ -1,5 +1,6 @@
 package com.limuzi.limuziaicodemother.service;
 
+import com.limuzi.limuziaicodemother.model.dto.app.AppAddRequest;
 import com.limuzi.limuziaicodemother.model.dto.app.AppQueryRequest;
 import com.limuzi.limuziaicodemother.model.entity.App;
 import com.limuzi.limuziaicodemother.model.entity.User;
@@ -16,6 +17,8 @@ import java.util.List;
  * @author limuzi
  */
 public interface AppService extends IService<App> {
+
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
 
     AppVO getAppVO(App app);
 
