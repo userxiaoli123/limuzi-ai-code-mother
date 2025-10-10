@@ -2,10 +2,11 @@ package com.limuzi.limuziaicodemother.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.limuzi.limuziaicodemother.ai.tools.FileWriteTool;
+import com.limuzi.limuziaicodemother.ai.tools.*;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
+import com.limuzi.limuziaicodemother.service.ChatHistoryOriginalService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
@@ -38,6 +39,12 @@ public class AiCodeGeneratorServiceFactory {
 
     @Resource
     private StreamingChatModel reasoningStreamingChatModel;
+
+    @Resource
+    private ToolManager toolManager;
+
+    @Resource
+    private ChatHistoryOriginalService chatHistoryOriginalService;
 
     /**
      * AI 服务实例缓存
@@ -77,42 +84,49 @@ public class AiCodeGeneratorServiceFactory {
 
     /**
      * 创建新的 AI 服务实例
-     * @param appId 应用ID
-     * codeGenType 代码生成类型
+     * @param appId
+     * @return
      */
     private AiCodeGeneratorService createAiCodeGeneratorService(Long appId, CodeGenTypeEnum codeGenType) {
         log.info("为 appId: {} 创建新的 AI 服务实例", appId);
+        AiCodeGeneratorService aiCodeGeneratorService;
         // 根据 appId 构建独立的对话记忆
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory
                 .builder()
                 .id(appId)
                 .chatMemoryStore(redisChatMemoryStore)
-                .maxMessages(50)
+                .maxMessages(60)   // 一次工具调用也算一次记忆，maxMessages得设置得大一点，不然模型会失忆一直循环调用工具
                 .build();
-//        从数据库中加载对话记忆到内存
-        chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 50);
-        return switch (codeGenType){
-            // Vue 项目
-            case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)
-                        .chatModel(chatModel)
+        // 根据代码生成类型选择不同的模型配置
+        switch (codeGenType) {
+            case VUE_PROJECT -> {
+                // 从数据库加载历史对话到缓存中，由于多了工具调用相关信息，加载的最大数量稍微多一些
+                chatHistoryOriginalService.loadOriginalChatHistoryToMemory(appId, chatMemory, 50);
+                // Vue 项目生成使用推理模型
+                aiCodeGeneratorService = AiServices.builder(AiCodeGeneratorService.class)
                         .streamingChatModel(reasoningStreamingChatModel)
                         .chatMemoryProvider(memoryId -> chatMemory)
-                        .tools(new FileWriteTool())
-                        .hallucinatedToolNameStrategy(toolExecutionRequest ->
-                            ToolExecutionResultMessage.from(toolExecutionRequest,
-                                    "Error, there is no tool called" + toolExecutionRequest.name()
-                            )
-                        )
+                        .tools(toolManager.getAllTools())
+                        .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
+                                toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
+                        ))
                         .build();
-            // HTML 项目
-            case HTML, MULTI_FILE -> AiServices.builder(AiCodeGeneratorService.class)
+            }
+            case HTML, MULTI_FILE -> {
+                // 从数据库加载历史对话到缓存中
+                chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 20);
+                // HTML 和多文件生成模式使用默认模型
+                aiCodeGeneratorService = AiServices.builder(AiCodeGeneratorService.class)
                         .chatModel(chatModel)
                         .streamingChatModel(openAiStreamingChatModel)
                         .chatMemory(chatMemory)
                         .build();
+            }
             default -> throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型: " + codeGenType.getValue());
         };
+        return aiCodeGeneratorService;
     }
+
 
     /**
      * 创建 AiCodeGeneratorService

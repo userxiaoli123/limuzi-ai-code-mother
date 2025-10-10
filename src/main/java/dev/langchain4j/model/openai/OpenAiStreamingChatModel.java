@@ -144,6 +144,8 @@ public class OpenAiStreamingChatModel implements StreamingChatModel {
                 })
                 .onError(throwable -> {
                     RuntimeException mappedException = ExceptionMapper.DEFAULT.mapException(throwable);
+                    System.out.println("Error: " + mappedException.getMessage());
+                    System.out.println("openAiRequest: " + openAiRequest);
                     withLoggingExceptions(() -> handler.onError(mappedException));
                 })
                 .execute();

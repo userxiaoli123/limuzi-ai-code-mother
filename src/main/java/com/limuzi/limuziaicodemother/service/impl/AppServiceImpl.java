@@ -23,6 +23,7 @@ import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
 import com.limuzi.limuziaicodemother.model.vo.AppVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
 import com.limuzi.limuziaicodemother.service.AppService;
+import com.limuzi.limuziaicodemother.service.ChatHistoryOriginalService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
 import com.limuzi.limuziaicodemother.service.UserService;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -56,8 +57,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private final VueProjectBuilder vueProjectBuilder;
     private final ScreenshotServiceImpl screenshotService;
     private final AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
+    private final ChatHistoryOriginalService chatHistoryOriginalService;
 
-    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService, AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService) {
+    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService, AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService, ChatHistoryOriginalService chatHistoryOriginalService) {
         this.userService = userService;
         this.aiCodeGeneratorFacade = aiCodeGeneratorFacade;
         this.chatHistoryService = chatHistoryService;
@@ -65,6 +67,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         this.vueProjectBuilder = vueProjectBuilder;
         this.screenshotService = screenshotService;
         this.aiCodeGenTypeRoutingService = aiCodeGenTypeRoutingService;
+        this.chatHistoryOriginalService = chatHistoryOriginalService;
     }
 
     /**
@@ -95,9 +98,10 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         }
 //        调用ai前先保存会话记录
         chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
+        chatHistoryOriginalService.addOriginalChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
         // 5. 调用 AI 生成代码
         Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
-        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, appId, loginUser, codeGenTypeEnum);
+        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, chatHistoryOriginalService, appId, loginUser, codeGenTypeEnum);
     }
 
 
@@ -322,6 +326,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         // 删除关联会话历史
         try {
             chatHistoryService.deleteByAppId(appId);
+            chatHistoryOriginalService.deleteByAppId(appId);
         } catch (Exception e) {
             log.error("删除应用关联会话历史失败:{}", e.getMessage());
         }

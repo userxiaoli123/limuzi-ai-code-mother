@@ -1,21 +1,22 @@
-package com.limuzi.limuziaicodemother.model.enums;
+package com.limuzi.limuziaicodemother.langgraph4j.model.enums;
 
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
 @Getter
-public enum ChatHistoryMessageTypeEnum {
+public enum ImageCategoryEnum {
 
-    USER("用户", "user"),
-    AI("AI", "ai"),
-    TOOL_EXECUTION_REQUEST("工具调用请求", "toolExecutionRequest"),
-    TOOL_EXECUTION_RESULT("工具调用结果", "toolExecutionResult");
+    CONTENT("内容图片", "CONTENT"),
+    LOGO("LOGO图片", "LOGO"),
+    ILLUSTRATION("插画图片", "ILLUSTRATION"),
+    ARCHITECTURE("架构图片", "ARCHITECTURE");
+
 
     private final String text;
 
     private final String value;
 
-    ChatHistoryMessageTypeEnum(String text, String value) {
+    ImageCategoryEnum(String text, String value) {
         this.text = text;
         this.value = value;
     }
@@ -26,11 +27,11 @@ public enum ChatHistoryMessageTypeEnum {
      * @param value 枚举值的value
      * @return 枚举值
      */
-    public static ChatHistoryMessageTypeEnum getEnumByValue(String value) {
+    public static ImageCategoryEnum getEnumByValue(String value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for (ChatHistoryMessageTypeEnum anEnum : ChatHistoryMessageTypeEnum.values()) {
+        for (ImageCategoryEnum anEnum : ImageCategoryEnum.values()) {
             if (anEnum.value.equals(value)) {
                 return anEnum;
             }
@@ -38,5 +39,3 @@ public enum ChatHistoryMessageTypeEnum {
         return null;
     }
 }
-
-
