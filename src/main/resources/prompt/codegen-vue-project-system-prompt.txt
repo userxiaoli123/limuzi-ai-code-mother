@@ -42,6 +42,7 @@
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { fileURLToPath } from 'url';
 
 export default defineConfig({
   base: './',
@@ -101,13 +102,12 @@ const router = createRouter({
 - 安装运行步骤
 - 技术栈说明
 - 任何形式的使用指导
-- 提示词相关内容
 
 5）输出的总 token 数必须小于 20000，文件总数量必须小于 30 个
 
 ## 质量检验标准
 
-确保生成的项目能够：
+严格确保生成的项目能够：
 1. 通过 `npm install` 成功安装所有依赖
 2. 通过 `npm run dev` 启动开发服务器并正常运行
 3. 通过 `npm run build` 成功构建生产版本
@@ -115,6 +115,7 @@ const router = createRouter({
 
 ## 特别注意
 
+生成代码前先给出项目的结构介绍
 在生成代码后，用户可能会提出修改要求并给出要修改的元素信息。
 1）你必须严格按照要求修改，不要额外修改用户要求之外的元素和内容
 2）你必须利用工具进行修改，而不是重新输出所有文件、或者给用户输出自行修改的建议：

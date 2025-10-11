@@ -1,13 +1,11 @@
 package com.limuzi.limuziaicodemother.core.handler;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.limuzi.limuziaicodemother.ai.model.message.*;
 import com.limuzi.limuziaicodemother.ai.tools.BaseTool;
 import com.limuzi.limuziaicodemother.ai.tools.ToolManager;
-import com.limuzi.limuziaicodemother.constant.AppConstant;
 import com.limuzi.limuziaicodemother.core.builder.VueProjectBuilder;
 import com.limuzi.limuziaicodemother.model.entity.ChatHistoryOriginal;
 import com.limuzi.limuziaicodemother.model.entity.User;
@@ -83,9 +81,6 @@ public class JsonMessageStreamHandler {
                     // 流式响应完成后，添加 AI 消息到对话历史
                     String chatHistoryStr = chatHistoryStringBuilder.toString();
                     chatHistoryService.addChatMessage(appId, chatHistoryStr, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-                    // 异步构建 Vue 项目
-                    String projectPath = AppConstant.CODE_OUTPUT_ROOT_DIR + "/vue_project_" + appId;
-                    vueProjectBuilder.buildProjectAsync(projectPath);
                 })
                 .doOnError(error -> {
                     // 如果AI回复失败，也要记录错误消息
