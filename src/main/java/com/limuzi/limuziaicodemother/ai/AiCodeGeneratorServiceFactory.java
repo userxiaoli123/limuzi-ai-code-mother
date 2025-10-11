@@ -8,6 +8,7 @@ import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
 import com.limuzi.limuziaicodemother.service.ChatHistoryOriginalService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
+import com.limuzi.limuziaicodemother.utils.SpringContextUtil;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -25,20 +26,14 @@ import java.time.Duration;
 @Configuration
 public class AiCodeGeneratorServiceFactory {
 
-    @Resource
+    @Resource(name = "openAiChatModel")
     private ChatModel chatModel;
-
-    @Resource
-    private StreamingChatModel openAiStreamingChatModel;
 
     @Resource
     RedisChatMemoryStore redisChatMemoryStore;
 
     @Resource
     private ChatHistoryService chatHistoryService;
-
-    @Resource
-    private StreamingChatModel reasoningStreamingChatModel;
 
     @Resource
     private ToolManager toolManager;
@@ -100,6 +95,8 @@ public class AiCodeGeneratorServiceFactory {
         // 根据代码生成类型选择不同的模型配置
         switch (codeGenType) {
             case VUE_PROJECT -> {
+                // 获取chatModelBean
+                StreamingChatModel reasoningStreamingChatModel = SpringContextUtil.getBean("reasoningStreamingChatModelPrototype", StreamingChatModel.class);
                 // 从数据库加载历史对话到缓存中，由于多了工具调用相关信息，加载的最大数量稍微多一些
                 chatHistoryOriginalService.loadOriginalChatHistoryToMemory(appId, chatMemory, 50);
                 // Vue 项目生成使用推理模型
@@ -113,6 +110,8 @@ public class AiCodeGeneratorServiceFactory {
                         .build();
             }
             case HTML, MULTI_FILE -> {
+                //获取chatModelBean
+                StreamingChatModel openAiStreamingChatModel = SpringContextUtil.getBean("streamingChatModelPrototype", StreamingChatModel.class);
                 // 从数据库加载历史对话到缓存中
                 chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 20);
                 // HTML 和多文件生成模式使用默认模型

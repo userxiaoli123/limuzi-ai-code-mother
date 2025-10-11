@@ -6,6 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.limuzi.limuziaicodemother.ai.AiCodeGenTypeRoutingService;
+import com.limuzi.limuziaicodemother.ai.AiCodeGenTypeRoutingServiceFactory;
 import com.limuzi.limuziaicodemother.constant.AppConstant;
 import com.limuzi.limuziaicodemother.core.AiCodeGeneratorFacade;
 import com.limuzi.limuziaicodemother.core.builder.VueProjectBuilder;
@@ -56,17 +57,17 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private final StreamHandlerExecutor streamHandlerExecutor;
     private final VueProjectBuilder vueProjectBuilder;
     private final ScreenshotServiceImpl screenshotService;
-    private final AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
+    private final AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory;
     private final ChatHistoryOriginalService chatHistoryOriginalService;
 
-    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService, AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService, ChatHistoryOriginalService chatHistoryOriginalService) {
+    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService, AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory, ChatHistoryOriginalService chatHistoryOriginalService) {
         this.userService = userService;
         this.aiCodeGeneratorFacade = aiCodeGeneratorFacade;
         this.chatHistoryService = chatHistoryService;
         this.streamHandlerExecutor = streamHandlerExecutor;
         this.vueProjectBuilder = vueProjectBuilder;
         this.screenshotService = screenshotService;
-        this.aiCodeGenTypeRoutingService = aiCodeGenTypeRoutingService;
+        this.aiCodeGenTypeRoutingServiceFactory = aiCodeGenTypeRoutingServiceFactory;
         this.chatHistoryOriginalService = chatHistoryOriginalService;
     }
 
@@ -123,6 +124,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         // 应用名称暂时为 initPrompt 前 12 位
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
         //        调用服务生成类型
+        AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService = aiCodeGenTypeRoutingServiceFactory.createAiCodeGenTypeRoutingService();
         CodeGenTypeEnum codeGenTypeEnum = aiCodeGenTypeRoutingService.routeCodeGenType(initPrompt);
         // 暂时设置为多文件生成
         app.setCodeGenType(codeGenTypeEnum.getValue());
