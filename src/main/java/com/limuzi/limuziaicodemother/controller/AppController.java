@@ -16,6 +16,8 @@ import com.limuzi.limuziaicodemother.model.dto.app.*;
 import com.limuzi.limuziaicodemother.model.entity.App;
 import com.limuzi.limuziaicodemother.model.entity.User;
 import com.limuzi.limuziaicodemother.model.vo.AppVO;
+import com.limuzi.limuziaicodemother.ratelimter.annotation.RateLimit;
+import com.limuzi.limuziaicodemother.ratelimter.enums.RateLimitType;
 import com.limuzi.limuziaicodemother.service.AppService;
 import com.limuzi.limuziaicodemother.service.ProjectDownloadService;
 import com.limuzi.limuziaicodemother.service.UserService;
@@ -60,6 +62,7 @@ public class AppController {
      * @param request 请求对象
      * @return 生成结果流
      */
+    @RateLimit(limitType = RateLimitType.USER, rate = 5, rateInterval = 60, message = "AI 对话请求过于频繁，请五分钟后重试！！！")
     @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam Long appId,
                                                        @RequestParam String message,
