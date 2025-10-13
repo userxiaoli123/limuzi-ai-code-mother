@@ -1,5 +1,7 @@
 package com.limuzi.limuziaicodemother.ai;
 
+import com.limuzi.limuziaicodemother.ai.guardrail.PromptSafetyInputGuardrail;
+import com.limuzi.limuziaicodemother.ai.guardrail.RetryOutputGuardrail;
 import com.limuzi.limuziaicodemother.utils.SpringContextUtil;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
@@ -26,6 +28,8 @@ public class AiCodeGenTypeRoutingServiceFactory {
         ChatModel chatModel = SpringContextUtil.getBean("routingChatModelPrototype", ChatModel.class);
         return AiServices.builder(AiCodeGenTypeRoutingService.class)
                 .chatModel(chatModel)
+                .inputGuardrails(new PromptSafetyInputGuardrail())
+                .outputGuardrails(new RetryOutputGuardrail())
                 .build();
     }
 

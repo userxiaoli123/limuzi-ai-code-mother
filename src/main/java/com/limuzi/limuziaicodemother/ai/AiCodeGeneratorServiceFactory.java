@@ -2,6 +2,8 @@ package com.limuzi.limuziaicodemother.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.limuzi.limuziaicodemother.ai.guardrail.PromptSafetyInputGuardrail;
+import com.limuzi.limuziaicodemother.ai.guardrail.RetryOutputGuardrail;
 import com.limuzi.limuziaicodemother.ai.tools.*;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
@@ -107,6 +109,9 @@ public class AiCodeGeneratorServiceFactory {
                         .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                                 toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                         ))
+//                        .maxSequentialToolsInvocations(20)
+                        .inputGuardrails(new PromptSafetyInputGuardrail())
+//                        .outputGuardrails(new RetryOutputGuardrail())
                         .build();
             }
             case HTML, MULTI_FILE -> {
@@ -119,6 +124,8 @@ public class AiCodeGeneratorServiceFactory {
                         .chatModel(chatModel)
                         .streamingChatModel(openAiStreamingChatModel)
                         .chatMemory(chatMemory)
+                        .inputGuardrails(new PromptSafetyInputGuardrail())
+//                        .outputGuardrails(new RetryOutputGuardrail())
                         .build();
             }
             default -> throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型: " + codeGenType.getValue());
