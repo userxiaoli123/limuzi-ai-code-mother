@@ -250,12 +250,8 @@ const customUpload = async (options: any) => {
   const { file } = options
 
   try {
-    // 创建 FormData 对象，适配后端的 MultipartFile
-    const formData = new FormData()
-    formData.append('file', file)
-
     // 使用 userController.ts 中的 updateAvatar 函数，但覆盖 headers 设置
-    const res = await updateAvatar(formData, {
+    const res = await updateAvatar({},file, {
       headers: {
         // 明确删除 Content-Type，让浏览器自动设置为 multipart/form-data
         'Content-Type': undefined
@@ -291,6 +287,11 @@ const removeAvatar = () => {
   padding: 0 24px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .header-left {

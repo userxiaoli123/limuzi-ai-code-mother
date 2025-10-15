@@ -111,6 +111,7 @@ declare namespace API {
 
   type ChatHistory = {
     id?: number
+    parentId?: number
     message?: string
     messageType?: string
     appId?: number
@@ -146,6 +147,18 @@ declare namespace API {
     appId: number
   }
 
+  type executeWorkflowParams = {
+    prompt: string
+  }
+
+  type executeWorkflowWithFluxParams = {
+    prompt: string
+  }
+
+  type executeWorkflowWithSseParams = {
+    prompt: string
+  }
+
   type getAppVOByIdByAdminParams = {
     id: number
   }
@@ -160,6 +173,12 @@ declare namespace API {
 
   type getUserVOByIdParams = {
     id: number
+  }
+
+  type ImageResource = {
+    category?: 'CONTENT' | 'LOGO' | 'ILLUSTRATION' | 'ARCHITECTURE'
+    description?: string
+    url?: string
   }
 
   type listAppChatHistoryParams = {
@@ -206,10 +225,20 @@ declare namespace API {
     optimizeCountQuery?: boolean
   }
 
+  type QualityResult = {
+    isValid?: boolean
+    errors?: string[]
+    suggestions?: string[]
+  }
+
   type ServerSentEventString = true
 
   type serveStaticResourceParams = {
     deployKey: string
+  }
+
+  type SseEmitter = {
+    timeout?: number
   }
 
   type User = {
@@ -274,5 +303,18 @@ declare namespace API {
     userRole?: string
     createTime?: string
     updateTime?: string
+  }
+
+  type WorkflowContext = {
+    currentStep?: string
+    originalPrompt?: string
+    imageListStr?: string
+    imageList?: ImageResource[]
+    enhancedPrompt?: string
+    generationType?: 'HTML' | 'MULTI_FILE' | 'VUE_PROJECT'
+    generatedCodeDir?: string
+    qualityResult?: QualityResult
+    buildResultDir?: string
+    errorMessage?: string
   }
 }

@@ -3,11 +3,13 @@
     <!-- 顶部导航栏 -->
     <GlobalHeader v-if="!$route.meta?.hideChrome" />
     <!-- 主要内容区域 -->
-    <a-layout-content class="main-content">
-      <router-view />
-    </a-layout-content>
-    <!-- 底部版权信息 -->
-    <GlobalFooter v-if="!$route.meta?.hideChrome" />
+    <div class="content-wrapper">
+      <a-layout-content class="main-content">
+        <router-view />
+      </a-layout-content>
+      <!-- 底部版权信息 -->
+      <GlobalFooter v-if="!$route.meta?.hideChrome" />
+    </div>
   </a-layout>
 </template>
 
@@ -19,12 +21,22 @@ import GlobalFooter from '@/components/GlobalFooter.vue'
 <style scoped>
 .basic-layout {
   background: transparent;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 64px; /* 与导航栏高度相同 */
 }
 
 .main-content {
   width: 100%;
   padding: 0;
   background: transparent;
-  margin: 0;
+  flex: 1;
 }
 </style>

@@ -150,9 +150,11 @@ public class AiCodeGeneratorFacade {
                 String completeCode = codeBuilder.toString();
                 // 使用执行器解析代码
                 Object parsedResult = CodeParserExecutor.executeParser(completeCode, codeGenType);
-                // 使用执行器保存代码
-                File savedDir = CodeFileSaverExecutor.executeSaver(parsedResult, codeGenType, appId);
-                log.info("保存成功，路径为：" + savedDir.getAbsolutePath());
+                if (parsedResult != null) {
+                    // 使用执行器保存代码
+                    File savedDir = CodeFileSaverExecutor.executeSaver(parsedResult, codeGenType, appId);
+                    log.info("保存成功，路径为：{}", savedDir.getAbsolutePath());
+                }
             } catch (Exception e) {
                 log.error("保存失败: {}", e.getMessage());
             }

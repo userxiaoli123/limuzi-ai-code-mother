@@ -37,7 +37,7 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      * @param userId 用户ID
      * @return 是否成功
      */
-    boolean addChatMessage(Long appId, String message, String messageType, Long userId);
+    Long addChatMessage(Long appId, String message, String messageType, Long userId, Long chatMessageId);
 
     /**
      * 删除指定appId的对话记录
@@ -62,4 +62,13 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      * @return 查询条件
      */
     QueryWrapper getQueryWrapper(ChatHistoryQueryRequest chatHistoryQueryRequest);
+
+
+    /**
+     * 删除指定id的对话记录,包括其提问和回答
+     * @param id id
+     * @return 是否成功
+     */
+    boolean deleteAllMessageById(Long id);
+
 }

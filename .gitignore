@@ -1,6 +1,8 @@
 ### CUSTOM ###
 application-local.yml
+application-prod.yml
 tmp
+AliyunJavaAgent
 
 HELP.md
 target/

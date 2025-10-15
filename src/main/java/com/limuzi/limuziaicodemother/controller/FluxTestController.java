@@ -1,7 +1,10 @@
 package com.limuzi.limuziaicodemother.controller;
 
+import com.limuzi.limuziaicodemother.annotation.AuthCheck;
+import com.limuzi.limuziaicodemother.constant.UserConstant;
 import com.limuzi.limuziaicodemother.langgraph4j.CodeGenWorkflow;
 import com.limuzi.limuziaicodemother.langgraph4j.state.WorkflowContext;
+import com.limuzi.limuziaicodemother.model.enums.UserRoleEnum;
 import com.limuzi.limuziaicodemother.test.FluxTest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -19,6 +22,7 @@ public class FluxTestController {
     /**
      * Flux 流式执行工作流
      */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @GetMapping(value = "/execute-flux", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> executeWorkflowWithFlux() {
         log.info("收到 Flux 工作流执行请求");

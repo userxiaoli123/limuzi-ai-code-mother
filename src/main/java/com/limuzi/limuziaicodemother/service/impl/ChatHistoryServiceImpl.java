@@ -23,8 +23,10 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,7 +74,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
 
 
     @Override
-    public boolean addChatMessage(Long appId, String message, String messageType, Long userId) {
+    public Long addChatMessage(Long appId, String message, String messageType, Long userId, Long chatMessageId) {
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用ID不能为空");
         ThrowUtils.throwIf(StrUtil.isBlank(message), ErrorCode.PARAMS_ERROR, "消息内容不能为空");
         ThrowUtils.throwIf(StrUtil.isBlank(messageType), ErrorCode.PARAMS_ERROR, "消息类型不能为空");
@@ -85,8 +87,11 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 .message(message)
                 .messageType(messageType)
                 .userId(userId)
+                .parentId(chatMessageId)
                 .build();
-        return this.save(chatHistory);
+        boolean saved = this.save(chatHistory);
+        ThrowUtils.throwIf(!saved, ErrorCode.SYSTEM_ERROR, "保存对话历史失败");
+        return chatHistory.getId();
     }
 
     @Override
@@ -177,7 +182,31 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
         return queryWrapper;
     }
 
-
+    /**
+     * 删除指定id的对话记录,包括其提问和回答，也有可能传过来的是回答的记录id
+     * @param id id
+     * @return 是否成功
+     */
+    @Transactional
+    @Override
+    public boolean deleteAllMessageById(Long id) {
+        // 根据id查询
+        ChatHistory chatHistory = this.getById(id);
+        if (chatHistory == null) {
+            return false;
+        }
+        List<Long> ids = null;
+        if (chatHistory.getParentId() != null){
+            ids = List.of(id, chatHistory.getParentId());
+        }else{
+            ids = List.of(id);
+        }
+        List<Long> finalIds = ids;
+        QueryWrapper queryWrapper = QueryWrapper.create()
+                .in("id", ids)
+                .or(queryWrapper1 -> queryWrapper1.in("parentId", finalIds), true);
+        return this.remove(queryWrapper);
+    }
 
 
 }

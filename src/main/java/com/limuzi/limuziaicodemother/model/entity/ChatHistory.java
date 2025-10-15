@@ -37,6 +37,12 @@ public class ChatHistory implements Serializable {
     private Long id;
 
     /**
+     * 关联提问的id
+     */
+    @Column("parentId")
+    private Long parentId;
+
+    /**
      * 消息
      */
     private String message;

@@ -5,8 +5,10 @@ spring:
     store-type: redis
     # session 30 天过期
     timeout: 2592000
-
-
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
   # mysql
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

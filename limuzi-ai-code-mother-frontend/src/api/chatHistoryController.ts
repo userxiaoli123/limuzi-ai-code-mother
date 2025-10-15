@@ -34,3 +34,18 @@ export async function listAppChatHistory(
     ...(options || {}),
   })
 }
+
+/** 此处后端没有提供注释 POST /chatHistory/deleteAllMessageById */
+export async function deleteAllMessageById(
+  body: API.DeleteRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseBoolean>('/chatHistory/deleteAllMessageById', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}

@@ -1,5 +1,7 @@
 package com.limuzi.limuziaicodemother.controller;
 
+import com.limuzi.limuziaicodemother.annotation.AuthCheck;
+import com.limuzi.limuziaicodemother.constant.UserConstant;
 import com.limuzi.limuziaicodemother.langgraph4j.CodeGenWorkflow;
 import com.limuzi.limuziaicodemother.langgraph4j.state.WorkflowContext;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ public class WorkflowSseController {
     /**
      * 同步执行工作流
      */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @PostMapping("/execute")
     public WorkflowContext executeWorkflow(@RequestParam String prompt) {
         log.info("收到同步工作流执行请求: {}", prompt);
@@ -29,6 +32,7 @@ public class WorkflowSseController {
     /**
      * Flux 流式执行工作流
      */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @GetMapping(value = "/execute-flux", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> executeWorkflowWithFlux(@RequestParam String prompt) {
         log.info("收到 Flux 工作流执行请求: {}", prompt);
@@ -38,6 +42,7 @@ public class WorkflowSseController {
     /**
      * SSE 流式执行工作流
      */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @GetMapping(value = "/execute-sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter executeWorkflowWithSse(@RequestParam String prompt) {
         log.info("收到 SSE 工作流执行请求: {}", prompt);

@@ -48,7 +48,7 @@ public class JsonMessageStreamHandler {
     public Flux<String> handle(Flux<String> originFlux,
                                ChatHistoryService chatHistoryService,
                                ChatHistoryOriginalService chatHistoryOriginalService,
-                               long appId, User loginUser) {
+                               long appId, User loginUser, Long chatMessageId) {
         // 收集数据用于前端展示
         StringBuilder chatHistoryStringBuilder = new StringBuilder();
         // 收集用于恢复对话记忆的数据
@@ -80,12 +80,12 @@ public class JsonMessageStreamHandler {
 
                     // 流式响应完成后，添加 AI 消息到对话历史
                     String chatHistoryStr = chatHistoryStringBuilder.toString();
-                    chatHistoryService.addChatMessage(appId, chatHistoryStr, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+                    chatHistoryService.addChatMessage(appId, chatHistoryStr, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId(), chatMessageId);
                 })
                 .doOnError(error -> {
                     // 如果AI回复失败，也要记录错误消息
                     String errorMessage = "AI回复失败: " + error.getMessage();
-                    chatHistoryService.addChatMessage(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+                    chatHistoryService.addChatMessage(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId(), chatMessageId);
                     chatHistoryOriginalService.addOriginalChatMessage(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
                 });
     }
