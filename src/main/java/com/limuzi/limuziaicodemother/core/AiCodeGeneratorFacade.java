@@ -105,6 +105,9 @@ public class AiCodeGeneratorFacade {
     private Flux<String> processTokenStream(TokenStream tokenStream, Long appId) {
         return Flux.create(sink -> {
             tokenStream.onPartialResponse((String partialResponse) -> {
+                        partialResponse = partialResponse
+                                .replaceAll("<", "&lt;")
+                                .replaceAll(">", "&gt;");
                         AiResponseMessage aiResponseMessage = new AiResponseMessage(partialResponse);
                         sink.next(JSONUtil.toJsonStr(aiResponseMessage));
                     })
