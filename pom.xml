@@ -189,6 +189,13 @@
             <version>3.50.0</version>
         </dependency>
 
+        <!--        邮箱验证 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

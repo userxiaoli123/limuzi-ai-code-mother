@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.limuzi.limuziaicodemother.ai.model.message.*;
 import com.limuzi.limuziaicodemother.ai.tools.BaseTool;
 import com.limuzi.limuziaicodemother.ai.tools.ToolManager;
+import com.limuzi.limuziaicodemother.constant.AppConstant;
 import com.limuzi.limuziaicodemother.core.builder.VueProjectBuilder;
 import com.limuzi.limuziaicodemother.model.entity.ChatHistoryOriginal;
 import com.limuzi.limuziaicodemother.model.entity.User;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +83,10 @@ public class JsonMessageStreamHandler {
                     // 流式响应完成后，添加 AI 消息到对话历史
                     String chatHistoryStr = chatHistoryStringBuilder.toString();
                     chatHistoryService.addChatMessage(appId, chatHistoryStr, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId(), chatMessageId);
+
+                    // 执行 Vue 项目构建（同步执行，确保预览时项目已就绪）
+                    String projectPath = AppConstant.CODE_OUTPUT_ROOT_DIR + File.separator + "vue_project_" + appId;
+                    vueProjectBuilder.buildProject(projectPath);
                 })
                 .doOnError(error -> {
                     // 如果AI回复失败，也要记录错误消息

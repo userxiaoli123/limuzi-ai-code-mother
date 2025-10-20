@@ -1,6 +1,8 @@
 ### CUSTOM ###
 application-local.yml
 application-prod.yml
+application-docker.yml
+
 tmp
 AliyunJavaAgent
 

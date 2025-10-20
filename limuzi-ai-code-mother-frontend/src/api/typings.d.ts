@@ -109,6 +109,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseVoid = {
+    code?: number
+    data?: Record<string, any>
+    message?: string
+  }
+
   type ChatHistory = {
     id?: number
     parentId?: number
@@ -159,12 +165,30 @@ declare namespace API {
     prompt: string
   }
 
+  type FindPasswordParams = {
+    password: string
+    code: string
+    email: string
+  }
+
   type getAppVOByIdByAdminParams = {
     id: number
   }
 
   type getAppVOByIdParams = {
     id: number
+  }
+
+  type getCodeForFindPasswordParams = {
+    email: string
+  }
+
+  type getCodeForRegisterParams = {
+    email: string
+  }
+
+  type getCodeForUpdateEmailParams = {
+    email: string
   }
 
   type getUserByIdParams = {
@@ -241,6 +265,11 @@ declare namespace API {
     timeout?: number
   }
 
+  type updateEmailParams = {
+    email: string
+    code: string
+  }
+
   type User = {
     id?: number
     userAccount?: string
@@ -284,6 +313,8 @@ declare namespace API {
     userAccount?: string
     userPassword?: string
     checkPassword?: string
+    userName?: string
+    verificationCode?: string
   }
 
   type UserUpdateRequest = {

@@ -22,6 +22,11 @@ const myAppsPage = reactive({
   total: 0,
 })
 
+// 加载状态
+const spinning = ref(false)
+
+
+
 // 精选应用数据
 const featuredApps = ref<API.AppVO[]>([])
 const featuredAppsPage = reactive({
@@ -79,6 +84,7 @@ const loadMyApps = async () => {
   }
 
   try {
+    spinning.value = true
     const res = await listMyAppVoByPage({
       pageNum: myAppsPage.current,
       pageSize: myAppsPage.pageSize,
@@ -92,12 +98,15 @@ const loadMyApps = async () => {
     }
   } catch (error) {
     console.error('加载我的应用失败：', error)
+  } finally {
+    spinning.value = false
   }
 }
 
 // 加载精选应用
 const loadFeaturedApps = async () => {
   try {
+    spinning.value = true
     const res = await listGoodAppVoByPage({
       pageNum: featuredAppsPage.current,
       pageSize: featuredAppsPage.pageSize,
@@ -111,6 +120,8 @@ const loadFeaturedApps = async () => {
     }
   } catch (error) {
     console.error('加载精选应用失败：', error)
+  } finally {
+    spinning.value = false
   }
 }
 
@@ -226,15 +237,17 @@ onMounted(() => {
       <!-- 我的作品 -->
       <div class="section">
         <h2 class="section-title">我的作品</h2>
-        <div class="app-grid">
-          <AppCard
-            v-for="app in myApps"
-            :key="app.id"
-            :app="app"
-            @view-chat="viewChat"
-            @view-work="viewWork"
-          />
-        </div>
+        <a-spin :spinning="spinning">
+          <div class="app-grid">
+            <AppCard
+              v-for="app in myApps"
+              :key="app.id"
+              :app="app"
+              @view-chat="viewChat"
+              @view-work="viewWork"
+            />
+          </div>
+        </a-spin>
         <div class="pagination-wrapper">
           <a-pagination
             v-model:current="myAppsPage.current"
@@ -250,16 +263,18 @@ onMounted(() => {
       <!-- 精选案例 -->
       <div class="section">
         <h2 class="section-title">精选案例</h2>
-        <div class="featured-grid">
-          <AppCard
-            v-for="app in featuredApps"
-            :key="app.id"
-            :app="app"
-            :featured="true"
-            @view-chat="viewChat"
-            @view-work="viewWork"
-          />
-        </div>
+        <a-spin :spinning="spinning">
+          <div class="featured-grid">
+            <AppCard
+              v-for="app in featuredApps"
+              :key="app.id"
+              :app="app"
+              :featured="true"
+              @view-chat="viewChat"
+              @view-work="viewWork"
+            />
+          </div>
+        </a-spin>
         <div class="pagination-wrapper">
           <a-pagination
             v-model:current="featuredAppsPage.current"

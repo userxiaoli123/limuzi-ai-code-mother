@@ -13,6 +13,7 @@ import com.limuzi.limuziaicodemother.model.dto.user.*;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
 import com.mybatisflex.core.paginate.Page;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import com.limuzi.limuziaicodemother.service.UserService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户 控制层。
@@ -36,20 +38,98 @@ public class UserController {
     private UserService userService;
 
     /**
+     * 获取验证码
+     * @param email 邮箱
+     * @return 验证信息
+     */
+    @GetMapping("/get/code/for/register")
+    public BaseResponse<Void> getCodeForRegister(@RequestParam(value = "email") String email) {
+        return ResultUtils.success(null,userService.getCodeForRegister(email));
+    }
+
+    /**
+     * 找回密码获取验证码
+     * @param email 邮箱
+     * @return 验证信息
+     */
+    @GetMapping("/get/code/for/find/password")
+    public BaseResponse<Void> getCodeForFindPassword(@RequestParam(value = "email") String email) {
+        return ResultUtils.success(null,userService.getCodeForFindPassword(email));
+    }
+
+    @GetMapping("/get/code/for/update/email")
+    public BaseResponse<Void> getCodeForUpdateEmail(@RequestParam(value = "email") String email) {
+        return ResultUtils.success(null,userService.getCodeForUpdateEmail(email));
+    }
+
+    /**
+     * 邮箱注册
+     * @param userRegisterRequest 用户注册请求
+     * @return 注册结果
+     */
+    @PostMapping("/register")
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+        return ResultUtils.success(userService.register(userRegisterRequest));
+    }
+
+    /**
+     * 密码登录
+     * @param userLoginRequest 用户登录请求
+     * @param request 请求体
+     * @return 登录信息
+     */
+    @PostMapping("/login")
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
+        String userAccount = userLoginRequest.getUserAccount();
+        String userPassword = userLoginRequest.getUserPassword();
+        return ResultUtils.success(userService.loginByPassword(userAccount, userPassword, request));
+    }
+
+    /**
+     * 找回密码
+     * @param password 密码
+     * @param code 验证码
+     * @param email 邮箱
+     * @return 找回密码结果
+     */
+    @PutMapping("/find/password")
+    public BaseResponse<Boolean> FindPassword(@RequestParam("password") String password,
+                                                 @RequestParam("code") String code,
+                                                 @RequestParam("email") String email) {
+        return ResultUtils.success(userService.getFindPassword(password, code, email));
+    }
+
+    /**
+     * 修改邮箱
+     * @param email 邮箱
+     * @param code 验证码
+     * @return 修改邮箱结果
+     */
+    @PutMapping("/update/email")
+    public BaseResponse<Boolean> updateEmail(@RequestParam(value = "email") String email,
+                                    @RequestParam(value = "code") String code, HttpServletRequest request) {
+        return ResultUtils.success(userService.updateEmail(email, code, request));
+    }
+
+
+    /**
      * 用户注册请求
      *
      * @param userRegisterRequest 用户注册请求
      * @return 注册结果
      */
-    @PostMapping("register")
-    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
-        ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
-        String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        long id = userService.userRegister(userAccount, userPassword, checkPassword);
-        return ResultUtils.success(id);
-    }
+//    @PostMapping("register")
+//    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+//        ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
+//        String userAccount = userRegisterRequest.getUserAccount();
+//        String userPassword = userRegisterRequest.getUserPassword();
+//        String checkPassword = userRegisterRequest.getCheckPassword();
+//        long id = userService.userRegister(userAccount, userPassword, checkPassword);
+//        return ResultUtils.success(id);
+//    }
+
+
 
     /**
      * 用户登录请求
@@ -57,14 +137,14 @@ public class UserController {
      * @param userLoginRequest 请求
      * @return 登录结果
      */
-    @PostMapping("login")
-    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
-        ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
-        String userAccount = userLoginRequest.getUserAccount();
-        String userPassword = userLoginRequest.getUserPassword();
-        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
-        return ResultUtils.success(loginUserVO);
-    }
+//    @PostMapping("login")
+//    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+//        ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
+//        String userAccount = userLoginRequest.getUserAccount();
+//        String userPassword = userLoginRequest.getUserPassword();
+//        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
+//        return ResultUtils.success(loginUserVO);
+//    }
 
     /**
      * 获取当前登录用户。
@@ -135,9 +215,13 @@ public class UserController {
      */
     @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
+    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (Objects.equals(loginUser.getUserRole(), UserConstant.ADMIN_ROLE)){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "管理员权限不足删除管理员");
         }
         boolean b = userService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);

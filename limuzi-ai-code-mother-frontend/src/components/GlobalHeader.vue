@@ -63,13 +63,15 @@
         <div class="avatar-upload-container">
           <a-upload :file-list="fileList" :before-upload="beforeUpload" :custom-request="customUpload"
             list-type="picture-card" :show-upload-list="false" accept="image/*">
+            <a-spin :spinning="loading" tip="Uploading...">
             <div class="avatar-upload-area">
               <img v-if="formState.userAvatar" :src="formState.userAvatar" alt="头像预览" class="avatar-preview" />
               <div v-else class="avatar-placeholder">
-                <plus-outlined />
+                <plus-outlined v-if="!loading"></plus-outlined>
                 <div class="upload-text">上传头像</div>
               </div>
             </div>
+            </a-spin>
           </a-upload>
           <div class="avatar-actions">
             <a-button @click="() => setVisible(true)" :disabled="!formState.userAvatar">头像预览</a-button>
@@ -83,22 +85,189 @@
       <a-form-item label="个人简介" name="userProfile">
         <a-textarea v-model:value="formState.userProfile" :rows="3" placeholder="一句话介绍自己" allow-clear />
       </a-form-item>
+      <a-form-item label="邮箱">
+        <div class="email-container">
+          <span>{{ loginUserStore.loginUser.userAccount || '未设置邮箱' }}</span>
+          <a-button type="link" @click="openUpdateEmailModal">修改邮箱</a-button>
+        </div>
+      </a-form-item>
+    </a-form>
+  </a-modal>
+
+  <!-- 修改邮箱弹窗 -->
+  <a-modal v-model:open="emailModalVisible" title="修改邮箱" @cancel="handleEmailModalCancel" :footer="null">
+    <a-steps :current="emailStep - 1" size="small" class="steps" style="margin-bottom: 24px;">
+      <a-step title="填写新邮箱" />
+      <a-step title="验证邮箱" />
+    </a-steps>
+
+    <a-form v-if="emailStep === 1" :model="emailForm" @finish="handleGetEmailCode">
+      <a-form-item label="新邮箱" name="email" :rules="[
+        { required: true, message: '请输入新邮箱' },
+        { type: 'email', message: '请输入有效的邮箱地址' }
+      ]">
+        <a-input v-model:value="emailForm.email" placeholder="请输入新邮箱" />
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" html-type="submit" :loading="gettingCode" style="width: 100%">获取验证码</a-button>
+      </a-form-item>
+    </a-form>
+
+    <a-form v-else :model="emailForm" @finish="handleUpdateEmail">
+      <a-form-item label="新邮箱">
+        <a-input v-model:value="emailForm.email" disabled />
+      </a-form-item>
+      <a-form-item label="验证码" name="code" :rules="[{ required: true, message: '请输入验证码' }]">
+        <a-input v-model:value="emailForm.code" placeholder="请输入验证码">
+          <template #addonAfter>
+            <a-button
+              type="link"
+              size="small"
+              :disabled="codeButtonDisabled"
+              @click="getVerificationCode"
+            >
+              {{ codeButtonText }}
+            </a-button>
+          </template>
+        </a-input>
+      </a-form-item>
+      <div class="action-buttons" style="display: flex; justify-content: flex-end; margin-top: 16px;">
+        <a-button style="margin-right: 10px" @click="emailStep = 1">上一步</a-button>
+        <a-button type="primary" html-type="submit" :loading="updating">提交修改</a-button>
+      </div>
     </a-form>
   </a-modal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message, type MenuProps } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
-import { LoginOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons-vue'
-import { userLogout, updateUser, updateAvatar } from '@/api/userController'
+import {LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { userLogout, updateUser, updateAvatar, getCodeForUpdateEmail, updateEmail } from '@/api/userController'
 import type { FormInstance, UploadFile } from 'ant-design-vue'
 
 const visible = ref<boolean>(false);
 const setVisible = (value:any): void => {
   visible.value = value;
+};
+const loading = ref<boolean>(false);
+
+// 邮箱修改相关
+const emailModalVisible = ref<boolean>(false);
+const emailStep = ref<number>(1);
+const gettingCode = ref<boolean>(false);
+const updating = ref<boolean>(false);
+const codeButtonDisabled = ref<boolean>(false);
+const codeButtonText = ref<string>('获取验证码');
+let countdownTimer: number | null = null;
+const emailForm = reactive({
+  email: '',
+  code: ''
+});
+
+// 打开修改邮箱弹窗
+const openUpdateEmailModal = () => {
+  emailModalVisible.value = true;
+  emailStep.value = 1;
+  emailForm.email = '';
+  emailForm.code = '';
+};
+
+// 关闭修改邮箱弹窗
+const handleEmailModalCancel = () => {
+  emailModalVisible.value = false;
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+  }
+};
+
+// 获取邮箱验证码
+const handleGetEmailCode = async () => {
+  try {
+    gettingCode.value = true;
+    const res = await getCodeForUpdateEmail({ email: emailForm.email });
+    if (res.data.code === 0) {
+      message.success('验证码已发送到您的邮箱');
+      emailStep.value = 2;
+      startCountdown();
+    } else {
+      message.error('获取验证码失败：' + res.data.message);
+    }
+  } catch (error) {
+    message.error('获取验证码失败，请稍后重试');
+  } finally {
+    gettingCode.value = false;
+  }
+};
+
+// 再次获取验证码
+const getVerificationCode = async () => {
+  try {
+    gettingCode.value = true;
+    const res = await getCodeForUpdateEmail({ email: emailForm.email });
+    if (res.data.code === 0) {
+      message.success('验证码已发送到您的邮箱');
+      startCountdown();
+    } else {
+      message.error('获取验证码失败：' + res.data.message);
+    }
+  } catch (error) {
+    message.error('获取验证码失败，请稍后重试');
+  } finally {
+    gettingCode.value = false;
+  }
+};
+
+// 开始倒计时
+const startCountdown = () => {
+  let countdown = 300;
+  codeButtonDisabled.value = true;
+  codeButtonText.value = `${countdown}秒后重试`;
+
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+  }
+
+  countdownTimer = window.setInterval(() => {
+    countdown--;
+    codeButtonText.value = `${countdown}秒后重试`;
+
+    if (countdown <= 0) {
+      clearInterval(countdownTimer!);
+      codeButtonDisabled.value = false;
+      codeButtonText.value = '获取验证码';
+    }
+  }, 1000);
+};
+
+// 提交修改邮箱
+const handleUpdateEmail = async () => {
+  try {
+    updating.value = true;
+    const res = await updateEmail({
+      email: emailForm.email,
+      code: emailForm.code
+    });
+    if (res.data.code === 0 && res.data.data) {
+      message.success('邮箱修改成功，请重新登录');
+      editVisible.value = false;
+      emailModalVisible.value = false;
+      // 清除倒计时
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+      }
+      // 退出登录
+      await doLoginOut();
+    } else {
+      message.error('修改邮箱失败：' + res.data.message);
+    }
+  } catch (error) {
+    message.error('修改邮箱失败，请稍后重试');
+  } finally {
+    updating.value = false;
+  }
 };
 
 
@@ -250,6 +419,7 @@ const customUpload = async (options: any) => {
   const { file } = options
 
   try {
+    loading.value = true;
     // 使用 userController.ts 中的 updateAvatar 函数，但覆盖 headers 设置
     const res = await updateAvatar({},file, {
       headers: {
@@ -268,6 +438,8 @@ const customUpload = async (options: any) => {
     }
   } catch (error) {
     message.error('头像上传失败')
+  } finally {
+    loading.value = false;
   }
 }
 

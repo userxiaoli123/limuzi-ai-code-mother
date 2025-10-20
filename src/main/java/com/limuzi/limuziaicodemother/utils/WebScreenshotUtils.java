@@ -15,9 +15,12 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -121,38 +124,58 @@ public class WebScreenshotUtils {
      */
     private static WebDriver getWebDriver() {
         try {
-            WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
-            options.setBinary(System.getenv("CHROME_BINARY"));
-            // 无头模式
-            options.addArguments("--headless");
-            // 禁用GPU（在某些环境下避免问题）
-            options.addArguments("--disable-gpu");
-            // 禁用沙盒模式（Docker环境需要）
+
+            // ------------------------------------------------------
+            // 1. 判断是否提供了环境变量 CHROME_BINARY
+            // ------------------------------------------------------
+            String chromeBinary = System.getenv("CHROME_BINARY");
+            String chromeDriver = System.getenv("CHROME_DRIVER_PATH"); // 可选，额外指定驱动路径
+            System.out.println("chromeDriver: " + chromeDriver);
+            boolean hasCustomChrome = chromeBinary != null && !chromeBinary.isEmpty() && chromeDriver != null && !chromeDriver.isEmpty();
+
+            if (hasCustomChrome) {
+                // 若存在环境变量，则使用系统已安装的 Chromium
+                log.info("检测到自定义 CHROME_BINARY: {}", chromeBinary);
+                options.setBinary(chromeBinary);
+                System.setProperty("webdriver.chrome.driver", chromeDriver);
+                System.setProperty("wdm.disable", "true"); // 禁止 WebDriverManager 下载
+                log.info("使用系统自带 Chromedriver: {}", chromeDriver);
+            } else {
+                // ⚙️ 若无环境变量，则自动解析驱动（适配 Windows/本地开发）
+                log.warn("未检测到 CHROME_BINARY 环境变量，使用 WebDriverManager 自动配置");
+                WebDriverManager.chromedriver().setup();
+                options.setBinary(chromeBinary);
+            }
+
+            // ------------------------------------------------------
+            // 2. 基础启动参数（Docker / 无头环境）
+            // ------------------------------------------------------
+            options.addArguments("--headless=new");
             options.addArguments("--no-sandbox");
-            // 禁用开发者shm使用
             options.addArguments("--disable-dev-shm-usage");
-            // 设置窗口大小
-            options.addArguments(String.format("--window-size=%d,%d", DEFAULT_WIDTH, DEFAULT_HEIGHT));
-            // 禁用扩展
+            options.addArguments("--disable-gpu");
             options.addArguments("--disable-extensions");
-            // 设置用户代理
-            options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            options.addArguments(String.format("--window-size=%d,%d", DEFAULT_WIDTH, DEFAULT_HEIGHT));
+            options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
-            // 创建驱动
+            // ------------------------------------------------------
+            // 3. 创建驱动实例
+            // ------------------------------------------------------
             WebDriver driver = new ChromeDriver(options);
-
-            // 设置页面加载超时
             driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
-            // 设置隐式等待
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
+            log.info("ChromeDriver 初始化完成，binary={}, driver={}", chromeBinary, chromeDriver);
             return driver;
+
         } catch (Exception e) {
-            log.error("初始化 Chrome 浏览器失败", e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "初始化 Chrome 浏览器失败: " + e.getMessage());
+            log.error("初始化浏览器失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "初始化浏览器失败: " + e.getMessage());
         }
     }
+
 
     /**
      * 保存图片到文件
@@ -210,6 +233,12 @@ public class WebScreenshotUtils {
         } catch (Exception e) {
             log.error("等待页面加载时出现异常，继续执行截图", e);
         }
+    }
+
+
+    public static void main(String[] args) {
+        String s = saveWebPageScreenshot("https://www.baidu.com");
+        System.out.println(s);
     }
 }
 

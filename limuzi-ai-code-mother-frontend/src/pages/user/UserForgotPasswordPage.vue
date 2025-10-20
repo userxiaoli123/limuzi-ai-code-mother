@@ -1,39 +1,36 @@
 <template>
-  <div id="userRegisterPage">
-    <h2 class="title">Limuzi AI 应用生成 - 用户注册</h2>
+  <div id="userForgotPasswordPage">
+    <h2 class="title">Limuzi AI 应用生成 - 找回密码</h2>
     <div class="desc">不写一行代码，生成完整应用</div>
     <a-steps :current="currentStep" size="small" class="steps">
-      <a-step title="填写账号信息" />
+      <a-step title="填写新密码" />
       <a-step title="验证邮箱" />
     </a-steps>
 
-    <!-- 第一步：账号信息 -->
+    <!-- 第一步：设置新密码 -->
     <div v-if="currentStep === 0">
       <a-form :model="formState" name="basic" autocomplete="off" @finish="goToNextStep">
-        <a-form-item name="userName" :rules="[{ required: true, message: '请输入用户名' }]">
-          <a-input v-model:value="formState.userName" placeholder="请输入用户名" />
-        </a-form-item>
         <a-form-item
           name="userPassword"
           :rules="[
-            { required: true, message: '请输入密码' },
+            { required: true, message: '请输入新密码' },
             { min: 8, message: '密码不能小于 8 位' },
           ]"
         >
-          <a-input-password v-model:value="formState.userPassword" placeholder="请输入密码" />
+          <a-input-password v-model:value="formState.userPassword" placeholder="请输入新密码" />
         </a-form-item>
         <a-form-item
           name="checkPassword"
           :rules="[
-            { required: true, message: '请确认密码' },
+            { required: true, message: '请确认新密码' },
             { min: 8, message: '密码不能小于 8 位' },
             { validator: validateCheckPassword },
           ]"
         >
-          <a-input-password v-model:value="formState.checkPassword" placeholder="请确认密码" />
+          <a-input-password v-model:value="formState.checkPassword" placeholder="请确认新密码" />
         </a-form-item>
         <div class="tips">
-          已有账号？
+          想起密码了？
           <RouterLink to="/user/login">去登录</RouterLink>
         </div>
         <a-form-item>
@@ -45,11 +42,11 @@
     <!-- 第二步：邮箱验证 -->
     <div v-if="currentStep === 1">
       <a-form :model="formState" name="email-verify" autocomplete="off" @finish="handleSubmit">
-        <a-form-item name="userAccount" :rules="[
+        <a-form-item name="email" :rules="[
           { required: true, message: '请输入邮箱' },
           { type: 'email', message: '请输入有效的邮箱地址' }
         ]">
-          <a-input v-model:value="formState.userAccount" placeholder="请输入邮箱">
+          <a-input v-model:value="formState.email" placeholder="请输入邮箱">
             <template #addonAfter>
               <a-button
                 type="link"
@@ -68,7 +65,7 @@
         </a-form-item>
         <div class="action-buttons">
           <a-button style="margin-right: 10px" @click="currentStep = 0">上一步</a-button>
-          <a-button type="primary" html-type="submit" :loading="submitting">注册</a-button>
+          <a-button type="primary" html-type="submit" :loading="submitting">提交</a-button>
         </div>
       </a-form>
     </div>
@@ -77,7 +74,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { userRegister, getCodeForRegister } from '@/api/userController.ts'
+import { findPassword, getCodeForFindPassword } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import { reactive, ref } from 'vue'
 
@@ -89,11 +86,17 @@ const codeButtonText = ref('获取验证码')
 const gettingCode = ref<boolean>(false);
 let countdownTimer: number | null = null
 
-const formState = reactive<API.UserRegisterRequest & { userName?: string }>({
-  userAccount: '',
+interface FormState {
+  userPassword: string
+  checkPassword: string
+  email: string
+  verificationCode: string
+}
+
+const formState = reactive<FormState>({
   userPassword: '',
   checkPassword: '',
-  userName: '',
+  email: '',
   verificationCode: '',
 })
 
@@ -122,14 +125,14 @@ const goToNextStep = () => {
  * 获取验证码
  */
 const getVerificationCode = async () => {
-  if (!formState.userAccount) {
+  if (!formState.email) {
     message.error('请先输入邮箱')
     return
   }
 
   try {
     gettingCode.value = true;
-    const res = await getCodeForRegister({ email: formState.userAccount })
+    const res = await getCodeForFindPassword({ email: formState.email })
     if (res.data.code === 0) {
       message.success('验证码已发送到您的邮箱')
       startCountdown()
@@ -139,7 +142,7 @@ const getVerificationCode = async () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     message.error('验证码发送失败，请稍后重试')
-  } finally {
+  } finally{
     gettingCode.value = false;
   }
 }
@@ -168,23 +171,27 @@ const startCountdown = () => {
  * 提交表单
  */
 const handleSubmit = async () => {
-  if (!formState.userAccount || !formState.verificationCode) {
+  if (!formState.email || !formState.verificationCode) {
     message.error('请填写邮箱和验证码')
     return
   }
 
   submitting.value = true
   try {
-    const res = await userRegister(formState)
-    // 注册成功，跳转到登录页面
+    const res = await findPassword({
+      email: formState.email,
+      code: formState.verificationCode,
+      password: formState.userPassword
+    })
+
     if (res.data.code === 0) {
-      message.success('注册成功')
+      message.success('密码重置成功')
       router.push({
         path: '/user/login',
         replace: true,
       })
     } else {
-      message.error('注册失败，' + res.data.message)
+      message.error('密码重置失败，' + res.data.message)
     }
   } finally {
     submitting.value = false
@@ -193,7 +200,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-#userRegisterPage {
+#userForgotPasswordPage {
   background: white;
   max-width: 720px;
   padding: 24px;

@@ -1,6 +1,7 @@
 package com.limuzi.limuziaicodemother.service;
 
 import com.limuzi.limuziaicodemother.model.dto.user.UserQueryRequest;
+import com.limuzi.limuziaicodemother.model.dto.user.UserRegisterRequest;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -102,4 +103,58 @@ public interface UserService extends IService<User> {
      * @return 头像地址
      */
     String updateAvatar(MultipartFile file, HttpServletRequest request);
+
+    /**
+     * 获取验证码
+     * @param email 邮箱
+     * @return 验证码
+     */
+    String getCodeForRegister(String email);
+
+    /**
+     * 用户注册
+     * @param userRegisterRequest 用户注册请求
+     * @return 注册结果
+     */
+    Long register(UserRegisterRequest userRegisterRequest);
+
+
+    /**
+     * 用户登录请求
+     *
+     * @param request 登录请求
+     * @return 登录结果
+     */
+    LoginUserVO loginByPassword(String email, String password, HttpServletRequest request);
+
+    /**
+     * 获取验证码
+     * @param email 邮箱
+     * @return 验证信息
+     */
+    String getCodeForFindPassword(String email);
+
+    /**
+     * 修改邮箱获取验证码
+     * @param email 邮箱
+     * @return 验证信息
+     */
+    String getCodeForUpdateEmail(String email);
+
+    /**
+     * 找回密码
+     * @param password 密码
+     * @param code 验证码
+     * @param email 邮箱
+     * @return 修改结果
+     */
+    Boolean getFindPassword(String password, String code, String email);
+
+    /**
+     * 修改邮箱
+     * @param email 邮箱
+     * @param code 验证码
+     * @return 修改结果
+     */
+    Boolean updateEmail(String email, String code, HttpServletRequest request);
 }
