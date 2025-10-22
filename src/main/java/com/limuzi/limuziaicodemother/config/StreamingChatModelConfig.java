@@ -1,12 +1,16 @@
 package com.limuzi.limuziaicodemother.config;
 
+import com.limuzi.limuziaicodemother.monitor.AiModelMonitorListener;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import jakarta.annotation.Resource;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+
+import java.util.List;
 
 @Configuration
 @ConfigurationProperties(prefix = "langchain4j.open-ai.streaming-chat-model")
@@ -27,6 +31,9 @@ public class StreamingChatModelConfig {
 
     private boolean logResponses;
 
+    @Resource
+    private AiModelMonitorListener aiModelMonitorListener;
+
     /**
      * 创建一个非推理流式模型实例
      * @return 非推理流式模型实例
@@ -42,6 +49,7 @@ public class StreamingChatModelConfig {
                 .temperature(temperature)
                 .logRequests(logRequests)
                 .logResponses(logResponses)
+                .listeners(List.of(aiModelMonitorListener))
                 .build();
     }
 }

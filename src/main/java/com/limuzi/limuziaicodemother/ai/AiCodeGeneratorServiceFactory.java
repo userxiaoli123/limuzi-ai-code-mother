@@ -2,6 +2,7 @@ package com.limuzi.limuziaicodemother.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.limuzi.limuziaicodemother.ai.chat.SessionAwareStreamingChatModel;
 import com.limuzi.limuziaicodemother.ai.guardrail.PromptSafetyInputGuardrail;
 import com.limuzi.limuziaicodemother.ai.guardrail.RetryOutputGuardrail;
 import com.limuzi.limuziaicodemother.ai.tools.*;
@@ -64,8 +65,8 @@ public class AiCodeGeneratorServiceFactory {
      * @param appId 应用ID
      * @return AiCodeGeneratorService
      */
-    public AiCodeGeneratorService getAiCodeGeneratorService(Long appId) {
-        return getAiCodeGeneratorService(appId, CodeGenTypeEnum.HTML);
+    public AiCodeGeneratorService getAiCodeGeneratorService(Long appId, Long userId) {
+        return getAiCodeGeneratorService(appId, CodeGenTypeEnum.HTML, userId);
     }
 
 
@@ -74,9 +75,9 @@ public class AiCodeGeneratorServiceFactory {
      * @param appId 应用ID codeGenType 码生成类型
      * @return AiCodeGeneratorService
      */
-    public AiCodeGeneratorService getAiCodeGeneratorService(Long appId, CodeGenTypeEnum codeGenTypeEnum) {
+    public AiCodeGeneratorService getAiCodeGeneratorService(Long appId, CodeGenTypeEnum codeGenTypeEnum, Long userId) {
         String cacheKey = buildCacheKey(appId, codeGenTypeEnum);
-        return serviceCache.get(cacheKey, key->createAiCodeGeneratorService(appId, codeGenTypeEnum));
+        return serviceCache.get(cacheKey, key->createAiCodeGeneratorService(appId, codeGenTypeEnum, userId));
     }
 
     /**
@@ -84,7 +85,7 @@ public class AiCodeGeneratorServiceFactory {
      * @param appId
      * @return
      */
-    private AiCodeGeneratorService createAiCodeGeneratorService(Long appId, CodeGenTypeEnum codeGenType) {
+    private AiCodeGeneratorService createAiCodeGeneratorService(Long appId, CodeGenTypeEnum codeGenType, Long userId) {
         log.info("为 appId: {} 创建新的 AI 服务实例", appId);
         AiCodeGeneratorService aiCodeGeneratorService;
         // 根据 appId 构建独立的对话记忆
@@ -98,7 +99,10 @@ public class AiCodeGeneratorServiceFactory {
         switch (codeGenType) {
             case VUE_PROJECT -> {
                 // 获取chatModelBean
-                StreamingChatModel reasoningStreamingChatModel = SpringContextUtil.getBean("reasoningStreamingChatModelPrototype", StreamingChatModel.class);
+                StreamingChatModel raw = SpringContextUtil.getBean("reasoningStreamingChatModelPrototype", StreamingChatModel.class);
+
+                StreamingChatModel reasoningStreamingChatModel = new SessionAwareStreamingChatModel(raw, String.valueOf(appId), userId.toString());
+
                 // 从数据库加载历史对话到缓存中，由于多了工具调用相关信息，加载的最大数量稍微多一些
                 chatHistoryOriginalService.loadOriginalChatHistoryToMemory(appId, chatMemory, 50);
                 // Vue 项目生成使用推理模型
@@ -140,7 +144,7 @@ public class AiCodeGeneratorServiceFactory {
      */
     @Bean
     public AiCodeGeneratorService aiCodeGeneratorService() {
-        return getAiCodeGeneratorService(0L);
+        return getAiCodeGeneratorService(0L, 1L);
     }
 
     /**

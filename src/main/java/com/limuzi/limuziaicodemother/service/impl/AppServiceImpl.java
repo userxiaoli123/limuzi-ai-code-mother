@@ -23,6 +23,8 @@ import com.limuzi.limuziaicodemother.model.enums.ChatHistoryMessageTypeEnum;
 import com.limuzi.limuziaicodemother.model.enums.CodeGenTypeEnum;
 import com.limuzi.limuziaicodemother.model.vo.AppVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
+import com.limuzi.limuziaicodemother.monitor.MonitorContext;
+import com.limuzi.limuziaicodemother.monitor.MonitorContextHolder;
 import com.limuzi.limuziaicodemother.service.AppService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryOriginalService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
@@ -96,18 +98,29 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         if (!app.getUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问该应用");
         }
+        Long userId = app.getUserId();
         // 4. 获取应用的代码生成类型
         String codeGenTypeStr = app.getCodeGenType();
         CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenTypeStr);
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
-//        调用ai前先保存会话记录
+//        5. 调用ai前先保存会话记录
         Long chatMessageId = chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId(), null);
         chatHistoryOriginalService.addOriginalChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
-        // 5. 调用 AI 生成代码
-        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
-        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, chatHistoryOriginalService, appId, loginUser, codeGenTypeEnum, chatMessageId);
+//        6. 设置监控上下文
+        MonitorContext monitorContext = MonitorContext.builder()
+                .appId(appId.toString())
+                .userId(loginUser.getId().toString())
+                .build();
+        MonitorContextHolder.setContext(monitorContext);
+        // 7. 调用 AI 生成代码
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId, userId);
+        // 8. 监控结束
+        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, chatHistoryOriginalService, appId, loginUser, codeGenTypeEnum, chatMessageId)
+                .doFinally(signalType ->  {
+                    MonitorContextHolder.clearContext();
+                });
     }
 
 
