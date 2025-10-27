@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodeapp.service;
+package com.limuzi.limuziaicodemother.service;
 
 public interface ScreenshotService {
     String generateAndUploadScreenshot(String webUrl);

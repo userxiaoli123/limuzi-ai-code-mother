@@ -1,11 +1,11 @@
-package com.limuzi.limuziaicodeapp.service.impl;
+package com.limuzi.limuziaicodemother.service.impl;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
 import com.limuzi.limuziaicodemother.manager.CosManager;
-import com.limuzi.limuziaicodeapp.service.ScreenshotService;
+import com.limuzi.limuziaicodemother.service.ScreenshotService;
 import com.limuzi.limuziaicodemother.utils.WebScreenshotUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
