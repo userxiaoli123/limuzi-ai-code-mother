@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodemother.service;
+package com.limuzi.limuziaicodeuser.service;
 
 import com.limuzi.limuziaicodemother.model.dto.user.UserQueryRequest;
 import com.limuzi.limuziaicodemother.model.dto.user.UserRegisterRequest;

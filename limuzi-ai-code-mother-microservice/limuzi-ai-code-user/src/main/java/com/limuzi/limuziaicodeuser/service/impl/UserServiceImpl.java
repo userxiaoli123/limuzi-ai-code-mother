@@ -1,22 +1,22 @@
-package com.limuzi.limuziaicodemother.service.impl;
+package com.limuzi.limuziaicodeuser.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.limuzi.limuziaicodemother.exception.BusinessException;
-import com.limuzi.limuziaicodemother.exception.ErrorCode;
-import com.limuzi.limuziaicodemother.exception.ThrowUtils;
-import com.limuzi.limuziaicodemother.manager.CosManager;
+import com.limuzi.limuziaicodemother.common.exception.BusinessException;
+import com.limuzi.limuziaicodemother.common.exception.ErrorCode;
+import com.limuzi.limuziaicodemother.common.exception.ThrowUtils;
+import com.limuzi.limuziaicodemother.common.manager.CosManager;
 import com.limuzi.limuziaicodemother.model.dto.user.UserQueryRequest;
 import com.limuzi.limuziaicodemother.model.dto.user.UserRegisterRequest;
 import com.limuzi.limuziaicodemother.model.enums.UserRoleEnum;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
-import com.limuzi.limuziaicodemother.utils.RedisConstants;
-import com.limuzi.limuziaicodemother.utils.SendCode;
+import com.limuzi.limuziaicodemother.common.utils.RedisConstants;
+import com.limuzi.limuziaicodeuser.utils.SendCode;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.limuzi.limuziaicodemother.model.entity.User;
-import com.limuzi.limuziaicodemother.mapper.UserMapper;
-import com.limuzi.limuziaicodemother.service.UserService;
+import com.limuzi.limuziaicodeuser.mapper.UserMapper;
+import com.limuzi.limuziaicodeuser.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.limuzi.limuziaicodemother.constant.UserConstant.USER_LOGIN_STATE;
+import static com.limuzi.limuziaicodemother.common.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户 服务层实现。

@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodemother.mapper;
+package com.limuzi.limuziaicodeuser.mapper;
 
 import com.mybatisflex.core.BaseMapper;
 import com.limuzi.limuziaicodemother.model.entity.User;

@@ -1,11 +1,11 @@
-package com.limuzi.limuziaicodemother.aop;
+package com.limuzi.limuziaicodeuser.aop;
 
-import com.limuzi.limuziaicodemother.annotation.AuthCheck;
-import com.limuzi.limuziaicodemother.exception.BusinessException;
-import com.limuzi.limuziaicodemother.exception.ErrorCode;
+import com.limuzi.limuziaicodemother.common.annotation.AuthCheck;
+import com.limuzi.limuziaicodemother.common.exception.BusinessException;
+import com.limuzi.limuziaicodemother.common.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.model.entity.User;
 import com.limuzi.limuziaicodemother.model.enums.UserRoleEnum;
-import com.limuzi.limuziaicodemother.service.UserService;
+import com.limuzi.limuziaicodeuser.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;

@@ -1,25 +1,24 @@
-package com.limuzi.limuziaicodemother.controller;
+package com.limuzi.limuziaicodeuser.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.limuzi.limuziaicodemother.annotation.AuthCheck;
-import com.limuzi.limuziaicodemother.common.BaseResponse;
-import com.limuzi.limuziaicodemother.common.DeleteRequest;
-import com.limuzi.limuziaicodemother.common.ResultUtils;
-import com.limuzi.limuziaicodemother.constant.UserConstant;
-import com.limuzi.limuziaicodemother.exception.BusinessException;
-import com.limuzi.limuziaicodemother.exception.ErrorCode;
-import com.limuzi.limuziaicodemother.exception.ThrowUtils;
+import com.limuzi.limuziaicodemother.common.annotation.AuthCheck;
+import com.limuzi.limuziaicodemother.common.common.BaseResponse;
+import com.limuzi.limuziaicodemother.common.common.DeleteRequest;
+import com.limuzi.limuziaicodemother.common.common.ResultUtils;
+import com.limuzi.limuziaicodemother.common.constant.UserConstant;
+import com.limuzi.limuziaicodemother.common.exception.BusinessException;
+import com.limuzi.limuziaicodemother.common.exception.ErrorCode;
+import com.limuzi.limuziaicodemother.common.exception.ThrowUtils;
 import com.limuzi.limuziaicodemother.model.dto.user.*;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;
 import com.mybatisflex.core.paginate.Page;
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.limuzi.limuziaicodemother.model.entity.User;
-import com.limuzi.limuziaicodemother.service.UserService;
+import com.limuzi.limuziaicodeuser.service.UserService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

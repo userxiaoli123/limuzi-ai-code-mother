@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodemother.utils;
+package com.limuzi.limuziaicodeuser.utils;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
