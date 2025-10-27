@@ -9,6 +9,7 @@ import com.aliyun.oss.model.PutObjectResult;
 import com.limuzi.limuziaicodemother.config.CosClientConfig;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -22,7 +23,7 @@ import java.time.format.DateTimeFormatter;
  * @author yupi
  */
 @Component
-@ConditionalOnBean(COSClient.class)
+@ConditionalOnBean(OSS.class)
 @Slf4j
 public class CosManager {
 
