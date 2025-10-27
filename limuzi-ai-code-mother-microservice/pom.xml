@@ -16,6 +16,7 @@
         <module>limuzi-ai-code-user</module>
         <module>limuzi-ai-code-ai</module>
         <module>limuzi-ai-code-screenshot</module>
+        <module>limuzi-ai-code-monitor</module>
     </modules>
 
     <properties>
