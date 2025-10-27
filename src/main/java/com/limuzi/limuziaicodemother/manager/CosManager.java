@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
  * @author yupi
  */
 @Component
+@ConditionalOnBean(COSClient.class)
 @Slf4j
 public class CosManager {
 

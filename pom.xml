@@ -11,6 +11,7 @@
     <groupId>com.limuzi</groupId>
     <artifactId>limuzi-ai-code-mother</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>limuzi-ai-code-mother</name>
     <description>limuzi-ai-code-mother</description>
     <url/>
@@ -20,6 +21,9 @@
     <developers>
         <developer/>
     </developers>
+    <modules>
+        <module>limuzi-ai-code-mother-microservice</module>
+    </modules>
     <scm>
         <connection/>
         <developerConnection/>
