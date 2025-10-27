@@ -1,14 +1,14 @@
 package com.limuzi.limuziaicodeuser.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.limuzi.limuziaicodemother.common.annotation.AuthCheck;
-import com.limuzi.limuziaicodemother.common.common.BaseResponse;
-import com.limuzi.limuziaicodemother.common.common.DeleteRequest;
-import com.limuzi.limuziaicodemother.common.common.ResultUtils;
-import com.limuzi.limuziaicodemother.common.constant.UserConstant;
-import com.limuzi.limuziaicodemother.common.exception.BusinessException;
-import com.limuzi.limuziaicodemother.common.exception.ErrorCode;
-import com.limuzi.limuziaicodemother.common.exception.ThrowUtils;
+import com.limuzi.limuziaicodemother.annotation.AuthCheck;
+import com.limuzi.limuziaicodemother.common.BaseResponse;
+import com.limuzi.limuziaicodemother.common.DeleteRequest;
+import com.limuzi.limuziaicodemother.common.ResultUtils;
+import com.limuzi.limuziaicodemother.constant.UserConstant;
+import com.limuzi.limuziaicodemother.exception.BusinessException;
+import com.limuzi.limuziaicodemother.exception.ErrorCode;
+import com.limuzi.limuziaicodemother.exception.ThrowUtils;
 import com.limuzi.limuziaicodemother.model.dto.user.*;
 import com.limuzi.limuziaicodemother.model.vo.LoginUserVO;
 import com.limuzi.limuziaicodemother.model.vo.UserVO;

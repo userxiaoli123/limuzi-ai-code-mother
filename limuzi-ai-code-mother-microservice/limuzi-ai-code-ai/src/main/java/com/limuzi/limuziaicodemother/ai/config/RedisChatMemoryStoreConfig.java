@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodemother.config;
+package com.limuzi.limuziaicodemother.ai.config;
 
 import cn.hutool.core.util.StrUtil;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;

@@ -1,6 +1,6 @@
-package com.limuzi.limuziaicodemother.config;
+package com.limuzi.limuziaicodemother.ai.config;
 
-import com.limuzi.limuziaicodemother.monitor.AiModelMonitorListener;
+//import com.limuzi.limuziaicodemother.monitor.AiModelMonitorListener;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import jakarta.annotation.Resource;
@@ -13,9 +13,9 @@ import org.springframework.context.annotation.Scope;
 import java.util.List;
 
 @Configuration
-@ConfigurationProperties(prefix = "langchain4j.open-ai.streaming-chat-model")
+@ConfigurationProperties(prefix = "langchain4j.open-ai.reasoning-streaming-chat-model")
 @Data
-public class StreamingChatModelConfig {
+public class ReasoningStreamingChatModelConfig {
 
     private String baseUrl;
 
@@ -27,20 +27,16 @@ public class StreamingChatModelConfig {
 
     private Double temperature;
 
-    private boolean logRequests;
+    private Boolean logRequests = false;
 
-    private boolean logResponses;
+    private Boolean logResponses = false;
 
-    @Resource
-    private AiModelMonitorListener aiModelMonitorListener;
+//    @Resource
+//    private AiModelMonitorListener aiModelMonitorListener;
 
-    /**
-     * 创建一个非推理流式模型实例
-     * @return 非推理流式模型实例
-     */
     @Bean
     @Scope("prototype")
-    public StreamingChatModel streamingChatModelPrototype() {
+    public StreamingChatModel reasoningStreamingChatModelPrototype() {
         return OpenAiStreamingChatModel.builder()
                 .apiKey(apiKey)
                 .baseUrl(baseUrl)
@@ -49,7 +45,7 @@ public class StreamingChatModelConfig {
                 .temperature(temperature)
                 .logRequests(logRequests)
                 .logResponses(logResponses)
-                .listeners(List.of(aiModelMonitorListener))
+//                .listeners(List.of(aiModelMonitorListener))
                 .build();
     }
 }

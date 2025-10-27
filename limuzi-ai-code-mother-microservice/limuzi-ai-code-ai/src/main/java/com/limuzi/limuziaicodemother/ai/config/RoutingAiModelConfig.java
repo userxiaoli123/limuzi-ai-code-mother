@@ -1,4 +1,4 @@
-package com.limuzi.limuziaicodemother.config;
+package com.limuzi.limuziaicodemother.ai.config;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
