@@ -15,6 +15,8 @@ import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
 import com.limuzi.limuziaicodemother.mapper.AppMapper;
+import com.limuzi.limuziaicodemother.innerservice.InnerScreenshotService;
+import com.limuzi.limuziaicodemother.innerservice.InnerUserService;
 import com.limuzi.limuziaicodemother.model.dto.app.AppAddRequest;
 import com.limuzi.limuziaicodemother.model.dto.app.AppQueryRequest;
 import com.limuzi.limuziaicodemother.model.entity.App;
@@ -28,11 +30,12 @@ import com.limuzi.limuziaicodemother.monitor.MonitorContextHolder;
 import com.limuzi.limuziaicodemother.service.AppService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryOriginalService;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
-import com.limuzi.limuziaicodemother.service.UserService;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -54,12 +57,18 @@ import java.util.stream.Collectors;
 @Service
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService {
 
-    private final UserService userService;
+    @Resource
+    @Lazy
+    private InnerUserService userService;
+
+    @Resource
+    @Lazy
+    private InnerScreenshotService screenshotService;
+
     private final AiCodeGeneratorFacade aiCodeGeneratorFacade;
     private final ChatHistoryService chatHistoryService;
     private final StreamHandlerExecutor streamHandlerExecutor;
     private final VueProjectBuilder vueProjectBuilder;
-    private final ScreenshotServiceImpl screenshotService;
     private final AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory;
     private final ChatHistoryOriginalService chatHistoryOriginalService;
 
@@ -67,13 +76,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private String deployHost;
 
 
-    public AppServiceImpl(UserService userService, AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, ScreenshotServiceImpl screenshotService, AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory, ChatHistoryOriginalService chatHistoryOriginalService) {
-        this.userService = userService;
+    public AppServiceImpl(AiCodeGeneratorFacade aiCodeGeneratorFacade, ChatHistoryService chatHistoryService, StreamHandlerExecutor streamHandlerExecutor, VueProjectBuilder vueProjectBuilder, AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory, ChatHistoryOriginalService chatHistoryOriginalService) {
         this.aiCodeGeneratorFacade = aiCodeGeneratorFacade;
         this.chatHistoryService = chatHistoryService;
         this.streamHandlerExecutor = streamHandlerExecutor;
         this.vueProjectBuilder = vueProjectBuilder;
-        this.screenshotService = screenshotService;
         this.aiCodeGenTypeRoutingServiceFactory = aiCodeGenTypeRoutingServiceFactory;
         this.chatHistoryOriginalService = chatHistoryOriginalService;
     }

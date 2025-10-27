@@ -25,8 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static dev.langchain4j.data.message.ChatMessageType.TOOL_EXECUTION_RESULT;
-
 /**
  * 对话历史 服务层实现。
  *

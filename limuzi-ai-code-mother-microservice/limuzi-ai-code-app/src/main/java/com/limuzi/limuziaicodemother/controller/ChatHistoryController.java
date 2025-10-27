@@ -8,21 +8,19 @@ import com.limuzi.limuziaicodemother.constant.UserConstant;
 import com.limuzi.limuziaicodemother.exception.BusinessException;
 import com.limuzi.limuziaicodemother.exception.ErrorCode;
 import com.limuzi.limuziaicodemother.exception.ThrowUtils;
+import com.limuzi.limuziaicodemother.innerservice.InnerUserService;
 import com.limuzi.limuziaicodemother.model.dto.chatHistory.ChatHistoryQueryRequest;
-import com.limuzi.limuziaicodemother.model.entity.App;
 import com.limuzi.limuziaicodemother.model.entity.User;
-import com.limuzi.limuziaicodemother.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.limuzi.limuziaicodemother.model.entity.ChatHistory;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 对话历史 控制层。
@@ -36,7 +34,8 @@ public class ChatHistoryController {
     @Resource
     private ChatHistoryService chatHistoryService;
     @Resource
-    private UserService userService;
+    @Lazy
+    private InnerUserService userService;
 
     /**
      * 分页查询某个应用的对话历史（游标查询）
@@ -52,7 +51,7 @@ public class ChatHistoryController {
                                                               @RequestParam(defaultValue = "10") int pageSize,
                                                               @RequestParam(required = false) LocalDateTime lastCreateTime,
                                                               HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = InnerUserService.getLoginUser(request);
         Page<ChatHistory> result = chatHistoryService.listAppChatHistoryByPage(appId, pageSize, lastCreateTime, loginUser);
         return ResultUtils.success(result);
     }
@@ -88,7 +87,7 @@ public class ChatHistoryController {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = InnerUserService.getLoginUser(request);
         long id = deleteRequest.getId();
         // 判断是否存在
         ChatHistory chatHistory = chatHistoryService.getById(id);

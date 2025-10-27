@@ -5,11 +5,9 @@ import com.limuzi.limuziaicodemother.ai.guardrail.RetryOutputGuardrail;
 import com.limuzi.limuziaicodemother.utils.SpringContextUtil;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 
 /**
  * AI代码生成类型路由服务工厂
