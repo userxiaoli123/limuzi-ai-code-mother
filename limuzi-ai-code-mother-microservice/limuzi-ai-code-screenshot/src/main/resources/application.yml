@@ -1,7 +1,25 @@
 spring:
   application:
     name: limuzi-ai-code-screenshot
+  profiles:
+    active: local
 server:
   port: 8127
   servlet:
     context-path: /api
+
+# Dubbo
+dubbo:
+  registry:
+    address: nacos://192.168.229.116:8848?username=nacos&password=nacos
+    register-mode: instance
+  protocol:
+    name: tri
+    port: 50052
+  consumer:
+    timeout: 120000
+  provider:
+    timeout: 120000
+  application:
+    name: limuzi-ai-code-screenshot
+    qos-enable: false

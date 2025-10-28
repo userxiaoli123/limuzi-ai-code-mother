@@ -8,6 +8,7 @@ import com.limuzi.limuziaicodemother.manager.CosManager;
 import com.limuzi.limuziaicodemother.service.ScreenshotService;
 import com.limuzi.limuziaicodemother.utils.WebScreenshotUtils;
 import jakarta.annotation.Resource;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class ScreenshotServiceImpl implements ScreenshotService {
 

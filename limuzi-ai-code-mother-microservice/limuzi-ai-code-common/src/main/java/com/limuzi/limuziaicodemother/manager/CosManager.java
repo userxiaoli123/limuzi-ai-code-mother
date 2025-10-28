@@ -2,6 +2,7 @@ package com.limuzi.limuziaicodemother.manager;
 
 import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.aliyun.oss.model.PutObjectRequest;
@@ -20,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * COS对象存储管理器
  *
- * @author yupi
+ * @author limuzi
  */
 @Component
 @ConditionalOnBean(OSS.class)

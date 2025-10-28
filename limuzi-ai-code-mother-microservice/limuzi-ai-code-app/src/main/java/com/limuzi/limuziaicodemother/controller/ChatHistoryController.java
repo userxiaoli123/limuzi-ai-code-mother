@@ -15,7 +15,6 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 import com.limuzi.limuziaicodemother.model.entity.ChatHistory;
 import com.limuzi.limuziaicodemother.service.ChatHistoryService;
@@ -33,9 +32,6 @@ public class ChatHistoryController {
 
     @Resource
     private ChatHistoryService chatHistoryService;
-    @Resource
-    @Lazy
-    private InnerUserService userService;
 
     /**
      * 分页查询某个应用的对话历史（游标查询）
