@@ -44,7 +44,7 @@ knife4j:
 # Dubbo
 dubbo:
   registry:
-    address: nacos://192.168.229.116:8848?username=nacos&password=nacos
+    address: nacos://192.168.74.128:8848?username=nacos&password=nacos
     register-mode: instance
   protocol:
     name: tri

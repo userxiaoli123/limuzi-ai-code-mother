@@ -45,7 +45,7 @@ knife4j:
 # Dubbo
 dubbo:
   registry:
-    address: nacos://192.168.229.116:8848?username=nacos&password=nacos
+    address: nacos://192.168.74.128:8848?username=nacos&password=nacos
     register-mode: instance
   protocol:
     name: tri
@@ -58,3 +58,12 @@ dubbo:
     name: limuzi-ai-code-app
     protocol: tri
     qos-enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
